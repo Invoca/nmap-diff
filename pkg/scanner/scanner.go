@@ -70,7 +70,7 @@ func (n *Nmap) SetupScan() error {
 			)
 
 	if err != nil {
-		log.Fatalf("unable to create scanner scanner: %v", err)
+		return fmt.Errorf("unable to create scanner scanner: %v", err)
 	}
 	n.nmapClientSvc = scanner
 	return nil
