@@ -11,27 +11,27 @@ import (
 )
 
 type Nmap struct {
-	CurrentExposed  map[string] map[uint16] bool
-	PreviousExposed map[string] map[uint16] bool
-	ctx             context.Context
-	cancel          context.CancelFunc
-	NewExposed  	map[string] map[uint16] bool
-	RemovedExposed  map[string] map[uint16] bool
-	ipAddresses 	[]string
-	nmapClientSvc	wrapper.NmapClientWrapper
-	CurrentScan     []byte
+	InstancesFromCurrentScan  map[string]map[uint16]bool
+	InstancesFromPreviousScan map[string]map[uint16]bool
+	ctx                       context.Context
+	cancel                    context.CancelFunc
+	NewInstancesExposed       map[string]map[uint16]bool
+	InstancesRemoved          map[string]map[uint16]bool
+	ipAddresses               []string
+	nmapClientSvc             wrapper.NmapClientWrapper
+	CurrentScan               []byte
 }
 
 func SetupNmap(ipAddresses []string) (Nmap, error) {
 	n := Nmap{}
 	if ipAddresses == nil {
-		return n, fmt.Errorf("Error Initializing Nmap interface. ipAddresses nil. ")
+		return n, fmt.Errorf("SetupNmap: Error Initializing Nmap interface. ipAddresses nil. ")
 	}
 
-	n.PreviousExposed = make(map[string] map[uint16] bool)
-	n.CurrentExposed =  make(map[string] map[uint16] bool)
-	n.NewExposed = make(map[string] map[uint16] bool)
-	n.RemovedExposed = make(map[string] map[uint16] bool)
+	n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
+	n.InstancesFromCurrentScan = make(map[string]map[uint16]bool)
+	n.NewInstancesExposed = make(map[string]map[uint16]bool)
+	n.InstancesRemoved = make(map[string]map[uint16]bool)
 	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
 	n.ipAddresses = ipAddresses
 	return n, nil
@@ -50,24 +50,23 @@ func (n *Nmap) ParsePreviousScan(scanBytes []byte) error {
 
 		hostMap := make(map[uint16]bool)
 
-
 		fmt.Printf("Host %q:\n", host.Addresses[0])
 
 		for _, port := range host.Ports {
 			fmt.Printf("\tPort %d/%s %s %s\n", port.ID, port.Protocol, port.State, port.Service.Name)
 			hostMap[port.ID] = true
 		}
-		n.PreviousExposed[host.Addresses[0].Addr] = hostMap
+		n.InstancesFromPreviousScan[host.Addresses[0].Addr] = hostMap
 	}
 	return nil
 }
 
 func (n *Nmap) SetupScan() error {
 	scanner, err := nmap.NewScanner(
-				nmap.WithTargets(n.ipAddresses...),
-				nmap.WithContext(n.ctx),
-				nmap.WithSkipHostDiscovery(),
-			)
+		nmap.WithTargets(n.ipAddresses...),
+		nmap.WithContext(n.ctx),
+		nmap.WithSkipHostDiscovery(),
+	)
 
 	if err != nil {
 		return fmt.Errorf("unable to create scanner scanner: %v", err)
@@ -98,7 +97,7 @@ func (n *Nmap) StartScan() error {
 		return fmt.Errorf("StartScan: Error reading previous scan %s", err)
 	}
 
-	n.CurrentScan =  currentScan
+	n.CurrentScan = currentScan
 
 	// Use the results to print an example output
 	for _, host := range result.Hosts {
@@ -110,41 +109,41 @@ func (n *Nmap) StartScan() error {
 		for _, port := range host.Ports {
 			hostEntry[port.ID] = true
 		}
-		n.CurrentExposed[host.Addresses[0].Addr] = hostEntry
+		n.InstancesFromCurrentScan[host.Addresses[0].Addr] = hostEntry
 	}
 	return nil
 }
 
 //TODO: Find a different way. I don't like this.
 func (n *Nmap) DiffScans() {
-	for host, ports := range n.CurrentExposed {
-		if n.PreviousExposed[host] == nil {
-			n.NewExposed[host] = ports
-		} else if n.PreviousExposed[host] != nil {
+	for host, ports := range n.InstancesFromCurrentScan {
+		if n.InstancesFromPreviousScan[host] == nil {
+			n.NewInstancesExposed[host] = ports
+		} else if n.InstancesFromPreviousScan[host] != nil {
 			portsAdded := make(map[uint16]bool)
 			portsRemoved := make(map[uint16]bool)
 			for port, _ := range ports {
-				if n.PreviousExposed[host][port] == false {
+				if n.InstancesFromPreviousScan[host][port] == false {
 					portsAdded[port] = true
 				}
 			}
-			for port, _ := range n.PreviousExposed[host] {
-				if n.CurrentExposed[host][port] == false {
+			for port, _ := range n.InstancesFromPreviousScan[host] {
+				if n.InstancesFromCurrentScan[host][port] == false {
 					portsRemoved[port] = true
 				}
 			}
 			if len(portsAdded) > 0 {
-				n.NewExposed[host] = portsAdded
+				n.NewInstancesExposed[host] = portsAdded
 			}
 			if len(portsRemoved) > 0 {
-				n.RemovedExposed[host] = portsRemoved
+				n.InstancesRemoved[host] = portsRemoved
 			}
 		}
 	}
 
-	for host, ports := range n.PreviousExposed {
-		if n.CurrentExposed[host] == nil {
-			n.RemovedExposed[host] = ports
+	for host, ports := range n.InstancesFromPreviousScan {
+		if n.InstancesFromCurrentScan[host] == nil {
+			n.InstancesRemoved[host] = ports
 		}
 	}
 }

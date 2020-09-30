@@ -20,15 +20,14 @@ func TestPrintClosedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	slackInterface := Slack{}
-	serverTag := make(map[string] string)
+	serverTag := make(map[string]string)
 	serverTag["tagName"] = "tagValue"
-
 
 	serverInterface := server.Server{
 		Name:    "Instance1",
 		Address: "1.1.1.1",
-		Ports:   []uint16{ 20 },
-		Tags:   serverTag,
+		Ports:   []uint16{20},
+		Tags:    serverTag,
 	}
 
 	testCases := []slackTestCase{
@@ -59,7 +58,7 @@ func TestPrintClosedPorts(t *testing.T) {
 		testServer := testCase.setup()
 		slackInterface.slackUrl = testServer.URL
 
-		err := slackInterface.PrintClosedPorts(serverInterface, []uint16{20,22})
+		err := slackInterface.PrintClosedPorts(serverInterface, []uint16{20, 22})
 
 		testServer.Close()
 
@@ -75,15 +74,14 @@ func TestPrintOpenedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	slackInterface := Slack{}
-	serverTag := make(map[string] string)
+	serverTag := make(map[string]string)
 	serverTag["tagName"] = "tagValue"
-
 
 	serverInterface := server.Server{
 		Name:    "Instance1",
 		Address: "1.1.1.1",
 		Ports:   []uint16{20},
-		Tags:   serverTag,
+		Tags:    serverTag,
 	}
 
 	testCases := []slackTestCase{
@@ -114,8 +112,7 @@ func TestPrintOpenedPorts(t *testing.T) {
 		testServer := testCase.setup()
 		slackInterface.slackUrl = testServer.URL
 
-
-		err := slackInterface.PrintOpenedPorts(serverInterface, []uint16{20,22})
+		err := slackInterface.PrintOpenedPorts(serverInterface, []uint16{20, 22})
 
 		testServer.Close()
 

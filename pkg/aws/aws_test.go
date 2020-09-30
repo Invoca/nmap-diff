@@ -2,10 +2,10 @@ package aws
 
 import (
 	"fmt"
-	"github.com/port-scanner/pkg/mocks"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/port-scanner/pkg/mocks"
 	"github.com/port-scanner/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -37,19 +37,19 @@ func TestGetAWSInstances(t *testing.T) {
 				ReservationId: aws.String("123ABC"),
 				Instances: []*ec2.Instance{
 					{
-						InstanceId: 	  aws.String("Instance 1"),
+						InstanceId:       aws.String("Instance 1"),
 						PublicIpAddress:  aws.String("6.6.6.6"),
 						PrivateIpAddress: aws.String("1.1.1.1"),
 						State:            &runningState,
 					},
 					{
-						InstanceId: 	  aws.String("Instance 2"),
+						InstanceId:       aws.String("Instance 2"),
 						PublicIpAddress:  aws.String("6.6.6.7"),
 						PrivateIpAddress: aws.String("2.2.2.2"),
 						State:            &runningState,
 					},
 					{
-						InstanceId: 	  aws.String("Instance 3"),
+						InstanceId:       aws.String("Instance 3"),
 						PublicIpAddress:  aws.String("6.6.6.8"),
 						PrivateIpAddress: aws.String("3.3.3.3"),
 						State:            &runningState,
@@ -86,7 +86,7 @@ func TestGetAWSInstances(t *testing.T) {
 
 		testCase.setup()
 
-		ec2api := AWSSvc{ServersMap: make(map[string] server.Server)}
+		ec2api := AWSSvc{ServersMap: make(map[string]server.Server)}
 		ec2api.Ec2svc = mockEc2
 
 		err := ec2api.getInstancesInRegion(mockEc2)
@@ -123,16 +123,16 @@ func TestGetAWSRegions(t *testing.T) {
 	resp := ec2.DescribeRegionsOutput{
 		Regions: []*ec2.Region{
 			{
-				RegionName:  &regions[0],
+				RegionName: &regions[0],
 			},
 			{
-				RegionName:  &regions[1],
+				RegionName: &regions[1],
 			},
 			{
-				RegionName:  &regions[2],
+				RegionName: &regions[2],
 			},
 			{
-				RegionName:  &regions[3],
+				RegionName: &regions[3],
 			},
 		},
 	}
@@ -164,7 +164,7 @@ func TestGetAWSRegions(t *testing.T) {
 
 		testCase.setup()
 
-		ec2api := AWSSvc{ServersMap: make(map[string] server.Server)}
+		ec2api := AWSSvc{ServersMap: make(map[string]server.Server)}
 		ec2api.Ec2svc = mockEc2
 
 		err := ec2api.getRegions()
@@ -222,7 +222,7 @@ func TestGetS3Object(t *testing.T) {
 
 		testCase.setup()
 
-		ec2api := AWSSvc{ServersMap: make(map[string] server.Server)}
+		ec2api := AWSSvc{ServersMap: make(map[string]server.Server)}
 		ec2api.S3svc = mockS3
 
 		_, err := ec2api.GetFileFromS3("file")

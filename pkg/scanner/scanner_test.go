@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/Ullaakut/nmap"
 	"github.com/port-scanner/pkg/mocks"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io/ioutil"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"testing"
 )
@@ -25,9 +25,9 @@ type scannerTestCase struct {
 }
 
 type scannerDiffTestCase struct {
-	desc        string
-	setup       func()
-	assertions  func()
+	desc       string
+	setup      func()
+	assertions func()
 }
 
 func TestParsePreviousScan(t *testing.T) {
@@ -103,83 +103,83 @@ func TestNmapDiffScans(t *testing.T) {
 
 	testCases := []scannerDiffTestCase{
 		{
-			desc: "Three new instances are found and should be added to NewExposed",
+			desc: "Three new instances are found and should be added to NewInstancesExposed",
 			setup: func() {
-				n.CurrentExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed = make(map[string] map[uint16] bool)
-				n.NewExposed = make(map[string] map[uint16] bool)
-				n.CurrentExposed[firstInstanceName] = make(map[uint16] bool)
-				n.CurrentExposed[secondInstanceName] = make(map[uint16] bool)
-				n.CurrentExposed[thirdInstanceName] = make(map[uint16] bool)
-				n.CurrentExposed[firstInstanceName][firstInstancePort] = true
-				n.CurrentExposed[thirdInstanceName][thirdInstancePort] = true
-				n.CurrentExposed[secondInstanceName][secondInstancePort] = true
+				n.InstancesFromCurrentScan = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
+				n.NewInstancesExposed = make(map[string]map[uint16]bool)
+				n.InstancesFromCurrentScan[firstInstanceName] = make(map[uint16]bool)
+				n.InstancesFromCurrentScan[secondInstanceName] = make(map[uint16]bool)
+				n.InstancesFromCurrentScan[thirdInstanceName] = make(map[uint16]bool)
+				n.InstancesFromCurrentScan[firstInstanceName][firstInstancePort] = true
+				n.InstancesFromCurrentScan[thirdInstanceName][thirdInstancePort] = true
+				n.InstancesFromCurrentScan[secondInstanceName][secondInstancePort] = true
 			},
 			assertions: func() {
-				assert.Equal(t, true, n.NewExposed[firstInstanceName][firstInstancePort])
-				assert.Equal(t, true, n.NewExposed[secondInstanceName][secondInstancePort])
-				assert.Equal(t, true, n.NewExposed[thirdInstanceName][thirdInstancePort])
+				assert.Equal(t, true, n.NewInstancesExposed[firstInstanceName][firstInstancePort])
+				assert.Equal(t, true, n.NewInstancesExposed[secondInstanceName][secondInstancePort])
+				assert.Equal(t, true, n.NewInstancesExposed[thirdInstanceName][thirdInstancePort])
 			},
 		},
 		{
 			desc: "One new instances was found and an old one was removed",
 			setup: func() {
-				n.CurrentExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed = make(map[string] map[uint16] bool)
-				n.NewExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed[firstInstanceName] = make(map[uint16] bool)
-				n.CurrentExposed[secondInstanceName] = make(map[uint16] bool)
-				n.PreviousExposed[firstInstanceName][firstInstancePort] = true
-				n.CurrentExposed[secondInstanceName][secondInstancePort] = true
+				n.InstancesFromCurrentScan = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
+				n.NewInstancesExposed = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan[firstInstanceName] = make(map[uint16]bool)
+				n.InstancesFromCurrentScan[secondInstanceName] = make(map[uint16]bool)
+				n.InstancesFromPreviousScan[firstInstanceName][firstInstancePort] = true
+				n.InstancesFromCurrentScan[secondInstanceName][secondInstancePort] = true
 			},
 			assertions: func() {
-				assert.Equal(t, true, n.PreviousExposed[firstInstanceName][firstInstancePort])
-				assert.Equal(t, true, n.NewExposed[secondInstanceName][secondInstancePort])
+				assert.Equal(t, true, n.InstancesFromPreviousScan[firstInstanceName][firstInstancePort])
+				assert.Equal(t, true, n.NewInstancesExposed[secondInstanceName][secondInstancePort])
 			},
 		},
 		{
 			desc: "One new instance was found and nothing was previously exposed",
 			setup: func() {
-				n.CurrentExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed = make(map[string] map[uint16] bool)
-				n.NewExposed = make(map[string] map[uint16] bool)
-				n.CurrentExposed[firstInstanceName] = make(map[uint16] bool)
-				n.CurrentExposed[firstInstanceName][firstInstancePort] = true
+				n.InstancesFromCurrentScan = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
+				n.NewInstancesExposed = make(map[string]map[uint16]bool)
+				n.InstancesFromCurrentScan[firstInstanceName] = make(map[uint16]bool)
+				n.InstancesFromCurrentScan[firstInstanceName][firstInstancePort] = true
 			},
 			assertions: func() {
-				assert.Equal(t, true, n.NewExposed[firstInstanceName][firstInstancePort])
+				assert.Equal(t, true, n.NewInstancesExposed[firstInstanceName][firstInstancePort])
 			},
 		},
 		{
 			desc: "One instance was previously found and now nothing is exposed",
 			setup: func() {
-				n.CurrentExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed = make(map[string] map[uint16] bool)
-				n.NewExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed[firstInstanceName] = make(map[uint16] bool)
-				n.PreviousExposed[firstInstanceName][firstInstancePort] = true
+				n.InstancesFromCurrentScan = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
+				n.NewInstancesExposed = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan[firstInstanceName] = make(map[uint16]bool)
+				n.InstancesFromPreviousScan[firstInstanceName][firstInstancePort] = true
 			},
 			assertions: func() {
-				assert.Equal(t, true, n.PreviousExposed[firstInstanceName][firstInstancePort])
+				assert.Equal(t, true, n.InstancesFromPreviousScan[firstInstanceName][firstInstancePort])
 			},
 		},
 		{
 			desc: "Nothing was previously found and now nothing is exposed",
 			setup: func() {
-				n.CurrentExposed = make(map[string] map[uint16] bool)
-				n.PreviousExposed = make(map[string] map[uint16] bool)
-				n.NewExposed = make(map[string] map[uint16] bool)
+				n.InstancesFromCurrentScan = make(map[string]map[uint16]bool)
+				n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
+				n.NewInstancesExposed = make(map[string]map[uint16]bool)
 			},
 			assertions: func() {
-				assert.Equal(t, 0, len(n.PreviousExposed))
-				assert.Equal(t, 0, len(n.CurrentExposed))
+				assert.Equal(t, 0, len(n.InstancesFromPreviousScan))
+				assert.Equal(t, 0, len(n.InstancesFromCurrentScan))
 			},
 		},
 	}
 
 	for index, testCase := range testCases {
 		log.WithFields(log.Fields{
-			"desc":        testCase.desc,
+			"desc": testCase.desc,
 		}).Debug("Starting testCase " + strconv.Itoa(index))
 
 		testCase.setup()
@@ -282,5 +282,3 @@ func TestSetupNmap(t *testing.T) {
 	_, err = SetupNmap(listOfInstances)
 	assert.NoError(t, err)
 }
-
-

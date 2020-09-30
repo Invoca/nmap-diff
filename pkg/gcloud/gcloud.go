@@ -1,20 +1,20 @@
 package gcloud
 
 import (
+	"context"
 	"fmt"
-	"github.com/port-scanner/pkg/wrapper"
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/server"
+	"github.com/port-scanner/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 	"strconv"
-	"context"
 )
 
 type GCloud struct {
-	IpAddresses    	[]string
-	ServersMap		map[string] server.Server
+	IpAddresses    []string
+	ServersMap     map[string]server.Server
 	computeService wrapper.GCloudWrapper
 }
 
@@ -25,7 +25,7 @@ func (g *GCloud) Setup(config config.BaseConfig) error {
 	}
 
 	g.computeService = GCloudwrapper
-	g.ServersMap = make(map[string] server.Server)
+	g.ServersMap = make(map[string]server.Server)
 	return nil
 }
 
@@ -34,7 +34,7 @@ func createGCloudInterface(baseConfig config.BaseConfig) (*GCloudWrapper, error)
 
 	computeService, err := compute.NewService(context.Background(), options)
 	if err != nil {
-		return nil, fmt.Errorf("SetupRunner: Error getting compute.Service object %s", err)
+		return nil, fmt.Errorf("SetupRunner: Error creating compute.Service object %s", err)
 	}
 
 	gCloudInterface, err := newCloudWrapper(computeService, baseConfig.GCloudConfig.ProjectName)
@@ -45,6 +45,10 @@ func createGCloudInterface(baseConfig config.BaseConfig) (*GCloudWrapper, error)
 }
 
 func (g *GCloud) Instances() error {
+	if g.computeService == nil {
+		return fmt.Errorf("Instances: computeService cannot be nil")
+	}
+
 	regionNames, err := g.computeService.Zones()
 	if err != nil {
 		return fmt.Errorf("GetInstances: Error Getting zones %s", err)
@@ -59,7 +63,7 @@ func (g *GCloud) Instances() error {
 
 		for _, instance := range instances {
 			newServer := server.Server{}
-			newServer.Tags = make(map[string] string)
+			newServer.Tags = make(map[string]string)
 			newServer.Name = instance.Name
 			newServer.Address = instance.NetworkInterfaces[0].AccessConfigs[0].NatIP
 			for index, key := range instance.Tags.Items {
@@ -91,15 +95,18 @@ func newCloudWrapper(computeService *compute.Service, project string) (*GCloudWr
 
 func (g *GCloudWrapper) Zones() ([]string, error) {
 	var regionNames []string
-	listRegions := g.computeService.Zones.List(g.project)
-	regions, err := listRegions.Do()
-
-	if regions == nil {
-		return nil, fmt.Errorf("Zones: No Zones Available")
+	if g.computeService == nil {
+		return nil, fmt.Errorf("Zones: computeService cannot be nil")
 	}
+
+	listRegionsCall := g.computeService.Zones.List(g.project)
+	regions, err := listRegionsCall.Do()
 
 	if err != nil {
 		return nil, fmt.Errorf("Zones: Error Getting zones %s", err)
+	}
+	if regions == nil {
+		return nil, fmt.Errorf("Zones: No Zones Available")
 	}
 
 	for _, region := range regions.Items {
@@ -110,22 +117,23 @@ func (g *GCloudWrapper) Zones() ([]string, error) {
 }
 
 func (g *GCloudWrapper) InstancesInRegion(region string) ([]compute.Instance, error) {
-	if region == "" {
-		return nil, fmt.Errorf("InstancesIPsInRegion: region cannot be nil")
-	}
-
 	var instances []compute.Instance
 
-	listInstances := g.computeService.Instances.List(g.project, region)
+	if region == "" {
+		return nil, fmt.Errorf("InstancesInRegion: region cannot be nil")
+	}
+	if g.computeService == nil {
+		return nil, fmt.Errorf("InstancesInRegion: computeService cannot be nil")
+	}
 
-	resList, err := listInstances.Do()
-
+	listInstancesCall := g.computeService.Instances.List(g.project, region)
+	gcloudInstances, err := listInstancesCall.Do()
 	if err != nil {
 		return nil, fmt.Errorf("InstancesIPsInRegion: Error getting instances %s", err)
 	}
 
-	for _, resItem := range resList.Items {
-		instances = append(instances, *resItem)
+	for _, computeInstance := range gcloudInstances.Items {
+		instances = append(instances, *computeInstance)
 	}
 	return instances, nil
 }

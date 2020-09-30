@@ -16,21 +16,27 @@ import (
 )
 
 type AWSSvc struct {
-	IpAddresses    	[]string
-	Regions 		[]string
-	ServersMap		map[string] server.Server
-	bucketName 		string
-	Ec2svc 			ec2iface.EC2API
-	S3svc 			s3iface.S3API
+	IpAddresses []string
+	Regions     []string
+	ServersMap  map[string]server.Server
+	bucketName  string
+	Ec2svc      ec2iface.EC2API
+	S3svc       s3iface.S3API
+	awsSession  *session.Session
 }
 
 func (a *AWSSvc) SetupAWS(configObject config.BaseConfig) error {
+	if configObject.BucketName == "" {
+		return fmt.Errorf("SetupAWS: BucketName cannot be nil")
+	}
 
-	a.ServersMap = make(map[string] server.Server)
+	a.ServersMap = make(map[string]server.Server)
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
+
+	a.awsSession = sess
 
 	a.Ec2svc = ec2.New(sess)
 
@@ -66,12 +72,12 @@ func (a *AWSSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API) error {
 		return fmt.Errorf("getInstancesInRegion: ec2Svc is nil")
 	}
 
-	describeInstances, err := ec2Svc.DescribeInstances(nil)
+	ec2Instances, err := ec2Svc.DescribeInstances(nil)
 	if err != nil {
 		return fmt.Errorf("GetInstances: Error Describing Instances %s", err)
 	}
 
-	reservations := describeInstances.Reservations
+	reservations := ec2Instances.Reservations
 
 	for idx, res := range reservations {
 		log.Debug("Reservation Id", *res.ReservationId, " Num Instances: ", len(res.Instances))
@@ -79,7 +85,7 @@ func (a *AWSSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API) error {
 			// Status code 16 is Runnning state
 			if *inst.State.Code == 16 {
 				newInstance := server.Server{}
-				newInstance.Tags = make(map[string] string)
+				newInstance.Tags = make(map[string]string)
 				newInstance.Address = *inst.PublicIpAddress
 				newInstance.Name = *inst.InstanceId
 				for _, tag := range inst.Tags {
@@ -94,12 +100,12 @@ func (a *AWSSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API) error {
 }
 
 func (a *AWSSvc) GetInstances() error {
-	for _, region := range a.Regions {
-		sess := session.Must(session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		}))
+	if a.awsSession == nil {
+		return fmt.Errorf("GetInstances: awsSession Cannot be nil")
+	}
 
-		ec2Svc := ec2.New(sess, aws.NewConfig().WithRegion(region))
+	for _, region := range a.Regions {
+		ec2Svc := ec2.New(a.awsSession, aws.NewConfig().WithRegion(region))
 		err := a.getInstancesInRegion(ec2Svc)
 		if err != nil {
 			return fmt.Errorf("Error gettings instances in region %s", err)
@@ -109,6 +115,10 @@ func (a *AWSSvc) GetInstances() error {
 }
 
 func (a *AWSSvc) UploadObjectToS3(fileData []byte, s3Key string) error {
+	if a.S3svc == nil {
+		return fmt.Errorf("UploadObjectToS3: S3svc cannot be nil")
+	}
+
 	_, err := a.S3svc.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(a.bucketName),
 		Body:   bytes.NewReader(fileData),
@@ -123,15 +133,17 @@ func (a *AWSSvc) UploadObjectToS3(fileData []byte, s3Key string) error {
 }
 
 func (a *AWSSvc) GetFileFromS3(s3Key string) (*[]byte, error) {
-	resp, err := a.S3svc.GetObject(&s3.GetObjectInput{
-		Key: aws.String(s3Key),
-		Bucket: aws.String(a.bucketName),
+	if a.S3svc == nil {
+		return nil, fmt.Errorf("GetFileFromS3: S3svc cannot be nil")
+	}
 
+	resp, err := a.S3svc.GetObject(&s3.GetObjectInput{
+		Key:    aws.String(s3Key),
+		Bucket: aws.String(a.bucketName),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("GetFileFromS3: Error getting resp from s3")
 	}
-
 
 	byteSlice, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

@@ -23,16 +23,16 @@ func TestGetInstances(t *testing.T) {
 	serviceMock := mocks.GCloudMock{}
 	gcloud := GCloud{}
 	gcloud.computeService = &serviceMock
-	gcloud.ServersMap = make(map[string] server.Server)
+	gcloud.ServersMap = make(map[string]server.Server)
 
-	regions := []string {
+	regions := []string{
 		"Never",
 		"Eat",
 		"Soggy",
 		"Waffles",
 	}
 
-	resp := []compute.Instance {
+	resp := []compute.Instance{
 		{
 			Name: "Instance 1",
 			NetworkInterfaces: []*compute.NetworkInterface{
@@ -45,7 +45,7 @@ func TestGetInstances(t *testing.T) {
 				},
 			},
 			Tags: &compute.Tags{
-				Items: []string {
+				Items: []string{
 					"Tag1",
 				},
 			},
@@ -62,7 +62,7 @@ func TestGetInstances(t *testing.T) {
 				},
 			},
 			Tags: &compute.Tags{
-				Items: []string {
+				Items: []string{
 					"Tag2",
 				},
 			},

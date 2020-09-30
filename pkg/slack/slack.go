@@ -17,7 +17,7 @@ type markdownText struct {
 }
 
 type block struct {
-	BlockType string `json:"type"`
+	BlockType string        `json:"type"`
 	BlockText *markdownText `json:"text,omitempty"`
 }
 
@@ -46,7 +46,7 @@ func SetupSlack(config config.BaseConfig) (*Slack, error) {
 func (s *Slack) createBlockSlackPost(text string, additionalText string) error {
 	var blockSlice []block
 
-	divider :=  block{
+	divider := block{
 		BlockType: "divider",
 	}
 
@@ -90,7 +90,7 @@ func (s *Slack) createBlockSlackPost(text string, additionalText string) error {
 	return nil
 }
 
-func (s *Slack) formatLabels(labels map[string] string) string {
+func (s *Slack) formatLabels(labels map[string]string) string {
 	baseString := "Labels:\t"
 	formatSpacing := "\n\t\t\t\t"
 	firstLabel := true
@@ -107,6 +107,9 @@ func (s *Slack) formatLabels(labels map[string] string) string {
 
 //TODO: Refactor usage of server struct to be able to use ports field
 func (s *Slack) PrintOpenedPorts(host server.Server, ports []uint16) error {
+	if s.slackUrl == "" {
+		return fmt.Errorf("PrintOpenedPorts: slackUrl cannot be empty")
+	}
 	for _, port := range ports {
 		title := ":large_green_circle: *Host* `" + host.Name + "` _Opened_ *Port* `" + strconv.FormatUint(uint64(port), 10) + "`"
 
@@ -123,6 +126,9 @@ func (s *Slack) PrintOpenedPorts(host server.Server, ports []uint16) error {
 
 //TODO: Refactor usage of server struct to be able to use ports field
 func (s *Slack) PrintClosedPorts(host server.Server, ports []uint16) error {
+	if s.slackUrl == "" {
+		return fmt.Errorf("PrintClosedPorts: slackUrl cannot be empty")
+	}
 	for _, port := range ports {
 		text := ":large_red_circle: *Host* `" + host.Name + "` _Closed_ *Port* `" + strconv.FormatUint(uint64(port), 10) + "`"
 
@@ -133,6 +139,5 @@ func (s *Slack) PrintClosedPorts(host server.Server, ports []uint16) error {
 			return fmt.Errorf("PrintClosedPorts: Error posting message to slack %s", err)
 		}
 	}
-
 	return nil
 }
