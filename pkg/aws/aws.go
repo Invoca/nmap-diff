@@ -65,7 +65,7 @@ func (a *awsSvc) getRegions() error {
 	return nil
 }
 
-func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[string]server.Server)  error {
+func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[string]server.Server) error {
 	if ec2Svc == nil {
 		return fmt.Errorf("getInstancesInRegion: ec2Svc is nil")
 	}
@@ -96,11 +96,11 @@ func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[str
 	return nil
 }
 
-func (a *awsSvc) GetInstances() (map[string] server.Server, error) {
+func (a *awsSvc) GetInstances() (map[string]server.Server, error) {
 	if a.awsSession == nil {
 		return nil, fmt.Errorf("GetInstances: awsSession Cannot be nil")
 	}
-	serversMap := make(map[string] server.Server)
+	serversMap := make(map[string]server.Server)
 
 	for _, region := range a.regions {
 		ec2Svc := ec2.New(a.awsSession, aws.NewConfig().WithRegion(region))

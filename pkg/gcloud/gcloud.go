@@ -24,9 +24,6 @@ func Setup(config config.BaseConfig) (*gCloudSvc, error) {
 
 	g := gCloudSvc{}
 	g.computeService = gCloudWrapper
-	z, _ := g.computeService.Zones()
-	log.Debug("Printing Zones: ")
-	fmt.Print(z)
 
 	return &g, nil
 }

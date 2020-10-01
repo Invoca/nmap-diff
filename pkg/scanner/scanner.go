@@ -11,11 +11,11 @@ import (
 )
 
 type nmapStruct struct {
-	ctx                       context.Context
-	cancel                    context.CancelFunc
-	ipAddresses               []string
-	nmapClientSvc             wrapper.NmapClientWrapper
-	CurrentScan               []byte
+	ctx           context.Context
+	cancel        context.CancelFunc
+	ipAddresses   []string
+	nmapClientSvc wrapper.NmapClientWrapper
+	CurrentScan   []byte
 }
 
 func SetupNmap(ipAddresses []string) (nmapStruct, error) {
@@ -29,8 +29,8 @@ func SetupNmap(ipAddresses []string) (nmapStruct, error) {
 	return n, nil
 }
 
-func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string] map[uint16]bool, error) {
-	instancesRemoved := make(map[string] map[uint16]bool)
+func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]bool, error) {
+	instancesRemoved := make(map[string]map[uint16]bool)
 	previousResult, err := nmap.Parse(scanBytes)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing buffer %s", err)
@@ -68,8 +68,8 @@ func (n *nmapStruct) SetupScan() error {
 	return nil
 }
 
-func (n *nmapStruct) StartScan() (map[string] map[uint16] bool, error) {
-	newInstancesExposed := make(map[string] map[uint16]bool)
+func (n *nmapStruct) StartScan() (map[string]map[uint16]bool, error) {
+	newInstancesExposed := make(map[string]map[uint16]bool)
 	defer n.cancel()
 
 	if n.nmapClientSvc == nil {
@@ -110,9 +110,9 @@ func (n *nmapStruct) StartScan() (map[string] map[uint16] bool, error) {
 }
 
 //TODO: Find a different way. I don't like this.
-func (n *nmapStruct) DiffScans(instancesFromCurrentScan map[string] map[uint16]bool, instancesFromPreviousScan map[string] map[uint16]bool) (map[string] map[uint16]bool, map[string] map[uint16]bool, error){
-	newInstancesExposed := make(map[string] map[uint16]bool)
-	instancesRemoved := make(map[string] map[uint16]bool)
+func (n *nmapStruct) DiffScans(instancesFromCurrentScan map[string]map[uint16]bool, instancesFromPreviousScan map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error) {
+	newInstancesExposed := make(map[string]map[uint16]bool)
+	instancesRemoved := make(map[string]map[uint16]bool)
 	for host, ports := range instancesFromCurrentScan {
 		if instancesFromPreviousScan[host] == nil {
 			newInstancesExposed[host] = ports
