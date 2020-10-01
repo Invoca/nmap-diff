@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type Nmap struct {
+type nmapStruct struct {
 	InstancesFromCurrentScan  map[string]map[uint16]bool
 	InstancesFromPreviousScan map[string]map[uint16]bool
 	ctx                       context.Context
@@ -22,10 +22,10 @@ type Nmap struct {
 	CurrentScan               []byte
 }
 
-func SetupNmap(ipAddresses []string) (Nmap, error) {
-	n := Nmap{}
+func SetupNmap(ipAddresses []string) (nmapStruct, error) {
+	n := nmapStruct{}
 	if ipAddresses == nil {
-		return n, fmt.Errorf("SetupNmap: Error Initializing Nmap interface. ipAddresses nil. ")
+		return n, fmt.Errorf("SetupNmap: Error Initializing nmapStruct interface. ipAddresses nil. ")
 	}
 
 	n.InstancesFromPreviousScan = make(map[string]map[uint16]bool)
@@ -37,7 +37,7 @@ func SetupNmap(ipAddresses []string) (Nmap, error) {
 	return n, nil
 }
 
-func (n *Nmap) ParsePreviousScan(scanBytes []byte) error {
+func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) error {
 	previousResult, err := nmap.Parse(scanBytes)
 	if err != nil {
 		return fmt.Errorf("error parsing buffer %s", err)
@@ -61,7 +61,7 @@ func (n *Nmap) ParsePreviousScan(scanBytes []byte) error {
 	return nil
 }
 
-func (n *Nmap) SetupScan() error {
+func (n *nmapStruct) SetupScan() error {
 	scanner, err := nmap.NewScanner(
 		nmap.WithTargets(n.ipAddresses...),
 		nmap.WithContext(n.ctx),
@@ -75,7 +75,7 @@ func (n *Nmap) SetupScan() error {
 	return nil
 }
 
-func (n *Nmap) StartScan() error {
+func (n *nmapStruct) StartScan() error {
 	defer n.cancel()
 	if n.nmapClientSvc == nil {
 		return fmt.Errorf("StartScan: nmapClientSvc is nil")
@@ -115,7 +115,7 @@ func (n *Nmap) StartScan() error {
 }
 
 //TODO: Find a different way. I don't like this.
-func (n *Nmap) DiffScans() {
+func (n *nmapStruct) DiffScans() {
 	for host, ports := range n.InstancesFromCurrentScan {
 		if n.InstancesFromPreviousScan[host] == nil {
 			n.NewInstancesExposed[host] = ports

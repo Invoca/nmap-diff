@@ -19,14 +19,13 @@ type slackTestCase struct {
 func TestPrintClosedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
-	slackInterface := Slack{}
+	slackInterface := slack{}
 	serverTag := make(map[string]string)
 	serverTag["tagName"] = "tagValue"
 
 	serverInterface := server.Server{
 		Name:    "Instance1",
 		Address: "1.1.1.1",
-		Ports:   []uint16{20},
 		Tags:    serverTag,
 	}
 
@@ -73,14 +72,13 @@ func TestPrintClosedPorts(t *testing.T) {
 func TestPrintOpenedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
-	slackInterface := Slack{}
+	slackInterface := slack{}
 	serverTag := make(map[string]string)
 	serverTag["tagName"] = "tagValue"
 
 	serverInterface := server.Server{
 		Name:    "Instance1",
 		Address: "1.1.1.1",
-		Ports:   []uint16{20},
 		Tags:    serverTag,
 	}
 

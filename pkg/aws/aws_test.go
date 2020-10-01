@@ -27,6 +27,7 @@ func TestGetAWSInstances(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	mockEc2 := &mocks.MockEC2API{}
+	serversMap := make(map[string]server.Server)
 
 	runningCode := int64(16)
 	runningState := ec2.InstanceState{Code: &runningCode}
@@ -86,10 +87,10 @@ func TestGetAWSInstances(t *testing.T) {
 
 		testCase.setup()
 
-		ec2api := AWSSvc{ServersMap: make(map[string]server.Server)}
-		ec2api.Ec2svc = mockEc2
+		ec2api := awsSvc{}
+		ec2api.ec2svc = mockEc2
 
-		err := ec2api.getInstancesInRegion(mockEc2)
+		err := ec2api.getInstancesInRegion(mockEc2, serversMap)
 
 		mockEc2.AssertExpectations(t)
 
@@ -102,8 +103,8 @@ func TestGetAWSInstances(t *testing.T) {
 
 	t.Logf("TestGetAWSInstances: pass nil object to getInstances")
 
-	ec2api := AWSSvc{}
-	err := ec2api.getInstancesInRegion(nil)
+	ec2api := awsSvc{}
+	err := ec2api.getInstancesInRegion(nil, serversMap)
 	assert.Error(t, err)
 
 }
@@ -164,8 +165,8 @@ func TestGetAWSRegions(t *testing.T) {
 
 		testCase.setup()
 
-		ec2api := AWSSvc{ServersMap: make(map[string]server.Server)}
-		ec2api.Ec2svc = mockEc2
+		ec2api := awsSvc{}
+		ec2api.ec2svc = mockEc2
 
 		err := ec2api.getRegions()
 
@@ -180,7 +181,7 @@ func TestGetAWSRegions(t *testing.T) {
 
 	t.Logf("TestGetAWSRegions: pass nil object to getRegions")
 
-	ec2api := AWSSvc{}
+	ec2api := awsSvc{}
 	err := ec2api.getRegions()
 	assert.Error(t, err)
 
@@ -222,8 +223,8 @@ func TestGetS3Object(t *testing.T) {
 
 		testCase.setup()
 
-		ec2api := AWSSvc{ServersMap: make(map[string]server.Server)}
-		ec2api.S3svc = mockS3
+		ec2api := awsSvc{}
+		ec2api.s3svc = mockS3
 
 		_, err := ec2api.GetFileFromS3("file")
 

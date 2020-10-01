@@ -21,9 +21,9 @@ type getInstancesTestCase struct {
 func TestGetInstances(t *testing.T) {
 
 	serviceMock := mocks.GCloudMock{}
-	gcloud := GCloud{}
+	gcloud := gCloudSvc{}
 	gcloud.computeService = &serviceMock
-	gcloud.ServersMap = make(map[string]server.Server)
+	serversMap := make(map[string]server.Server)
 
 	regions := []string{
 		"Never",
@@ -107,7 +107,7 @@ func TestGetInstances(t *testing.T) {
 
 		testCase.setup()
 
-		err := gcloud.Instances()
+		err := gcloud.Instances(serversMap)
 
 		if testCase.shouldError {
 			assert.Error(t, err)

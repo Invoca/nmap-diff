@@ -15,22 +15,20 @@ import (
 	"io/ioutil"
 )
 
-type AWSSvc struct {
-	IpAddresses []string
-	Regions     []string
-	ServersMap  map[string]server.Server
-	bucketName  string
-	Ec2svc      ec2iface.EC2API
-	S3svc       s3iface.S3API
-	awsSession  *session.Session
+type awsSvc struct {
+	regions    []string
+	bucketName string
+	ec2svc     ec2iface.EC2API
+	s3svc      s3iface.S3API
+	awsSession *session.Session
 }
 
-func (a *AWSSvc) SetupAWS(configObject config.BaseConfig) error {
+func SetupAWS(configObject config.BaseConfig) (*awsSvc, error) {
 	if configObject.BucketName == "" {
-		return fmt.Errorf("SetupAWS: BucketName cannot be nil")
+		return nil, fmt.Errorf("SetupAWS: BucketName cannot be nil")
 	}
 
-	a.ServersMap = make(map[string]server.Server)
+	a := awsSvc{}
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -38,36 +36,36 @@ func (a *AWSSvc) SetupAWS(configObject config.BaseConfig) error {
 
 	a.awsSession = sess
 
-	a.Ec2svc = ec2.New(sess)
+	a.ec2svc = ec2.New(sess)
 
 	a.bucketName = configObject.BucketName
-	a.S3svc = s3.New(sess)
+	a.s3svc = s3.New(sess)
 
 	err := a.getRegions()
 	if err != nil {
-		return fmt.Errorf("Error Getting Regions %s", err)
+		return nil, fmt.Errorf("Error Getting regions %s", err)
 	}
 
-	return nil
+	return &a, nil
 }
 
-func (a *AWSSvc) getRegions() error {
-	if a.Ec2svc == nil {
+func (a *awsSvc) getRegions() error {
+	if a.ec2svc == nil {
 		return fmt.Errorf("getRegions: ec2svc is not yet initialized")
 	}
 
-	resultRegions, err := a.Ec2svc.DescribeRegions(nil)
+	resultRegions, err := a.ec2svc.DescribeRegions(nil)
 	if err != nil {
-		return fmt.Errorf("getRegions: Error Describing Regions %s", err)
+		return fmt.Errorf("getRegions: Error Describing regions %s", err)
 	}
 
 	for _, region := range resultRegions.Regions {
-		a.Regions = append(a.Regions, *region.RegionName)
+		a.regions = append(a.regions, *region.RegionName)
 	}
 	return nil
 }
 
-func (a *AWSSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API) error {
+func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[string]server.Server)  error {
 	if ec2Svc == nil {
 		return fmt.Errorf("getInstancesInRegion: ec2Svc is nil")
 	}
@@ -91,35 +89,38 @@ func (a *AWSSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API) error {
 				for _, tag := range inst.Tags {
 					newInstance.Tags[*tag.Key] = *tag.Value
 				}
-				a.IpAddresses = append(a.IpAddresses, newInstance.Address)
-				a.ServersMap[newInstance.Address] = newInstance
+				serversMap[newInstance.Address] = newInstance
 			}
 		}
 	}
 	return nil
 }
 
-func (a *AWSSvc) GetInstances() error {
+func (a *awsSvc) GetInstances() (map[string] server.Server, error) {
 	if a.awsSession == nil {
-		return fmt.Errorf("GetInstances: awsSession Cannot be nil")
+		return nil, fmt.Errorf("GetInstances: awsSession Cannot be nil")
 	}
+	serversMap := make(map[string] server.Server)
 
-	for _, region := range a.Regions {
+	for _, region := range a.regions {
 		ec2Svc := ec2.New(a.awsSession, aws.NewConfig().WithRegion(region))
-		err := a.getInstancesInRegion(ec2Svc)
+		err := a.getInstancesInRegion(ec2Svc, serversMap)
+		for k, v := range serversMap {
+			serversMap[k] = v
+		}
 		if err != nil {
-			return fmt.Errorf("Error gettings instances in region %s", err)
+			return nil, fmt.Errorf("Error gettings instances in region %s", err)
 		}
 	}
-	return nil
+	return serversMap, nil
 }
 
-func (a *AWSSvc) UploadObjectToS3(fileData []byte, s3Key string) error {
-	if a.S3svc == nil {
-		return fmt.Errorf("UploadObjectToS3: S3svc cannot be nil")
+func (a *awsSvc) UploadObjectToS3(fileData []byte, s3Key string) error {
+	if a.s3svc == nil {
+		return fmt.Errorf("UploadObjectToS3: s3svc cannot be nil")
 	}
 
-	_, err := a.S3svc.PutObject(&s3.PutObjectInput{
+	_, err := a.s3svc.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(a.bucketName),
 		Body:   bytes.NewReader(fileData),
 		Key:    aws.String(s3Key),
@@ -132,12 +133,12 @@ func (a *AWSSvc) UploadObjectToS3(fileData []byte, s3Key string) error {
 	return nil
 }
 
-func (a *AWSSvc) GetFileFromS3(s3Key string) (*[]byte, error) {
-	if a.S3svc == nil {
-		return nil, fmt.Errorf("GetFileFromS3: S3svc cannot be nil")
+func (a *awsSvc) GetFileFromS3(s3Key string) ([]byte, error) {
+	if a.s3svc == nil {
+		return nil, fmt.Errorf("GetFileFromS3: s3svc cannot be nil")
 	}
 
-	resp, err := a.S3svc.GetObject(&s3.GetObjectInput{
+	resp, err := a.s3svc.GetObject(&s3.GetObjectInput{
 		Key:    aws.String(s3Key),
 		Bucket: aws.String(a.bucketName),
 	})
@@ -150,5 +151,5 @@ func (a *AWSSvc) GetFileFromS3(s3Key string) (*[]byte, error) {
 		return nil, fmt.Errorf("GetFileFromS3: Error reading to byte slice %s", err)
 	}
 
-	return &byteSlice, nil
+	return byteSlice, nil
 }

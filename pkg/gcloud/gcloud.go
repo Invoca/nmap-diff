@@ -12,24 +12,26 @@ import (
 	"strconv"
 )
 
-type GCloud struct {
-	IpAddresses    []string
-	ServersMap     map[string]server.Server
+type gCloudSvc struct {
 	computeService wrapper.GCloudWrapper
 }
 
-func (g *GCloud) Setup(config config.BaseConfig) error {
-	GCloudwrapper, err := createGCloudInterface(config)
+func Setup(config config.BaseConfig) (*gCloudSvc, error) {
+	gCloudWrapper, err := createGCloudInterface(config)
 	if err != nil {
-		return fmt.Errorf("Setup: Error Creating GCloud Interface")
+		return nil, fmt.Errorf("Setup: Error Creating gCloudSvc Interface %s", err)
 	}
 
-	g.computeService = GCloudwrapper
-	g.ServersMap = make(map[string]server.Server)
-	return nil
+	g := gCloudSvc{}
+	g.computeService = gCloudWrapper
+	z, _ := g.computeService.Zones()
+	log.Debug("Printing Zones: ")
+	fmt.Print(z)
+
+	return &g, nil
 }
 
-func createGCloudInterface(baseConfig config.BaseConfig) (*GCloudWrapper, error) {
+func createGCloudInterface(baseConfig config.BaseConfig) (*gCloudWrapper, error) {
 	options := option.WithCredentialsFile(baseConfig.GCloudConfig.ServiceAccountPath)
 
 	computeService, err := compute.NewService(context.Background(), options)
@@ -39,16 +41,12 @@ func createGCloudInterface(baseConfig config.BaseConfig) (*GCloudWrapper, error)
 
 	gCloudInterface, err := newCloudWrapper(computeService, baseConfig.GCloudConfig.ProjectName)
 	if err != nil {
-		return nil, fmt.Errorf("SetupRunner: Error creating GCloud wrapper %s", err)
+		return nil, fmt.Errorf("SetupRunner: Error creating gCloudSvc wrapper %s", err)
 	}
 	return gCloudInterface, nil
 }
 
-func (g *GCloud) Instances() error {
-	if g.computeService == nil {
-		return fmt.Errorf("Instances: computeService cannot be nil")
-	}
-
+func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 	regionNames, err := g.computeService.Zones()
 	if err != nil {
 		return fmt.Errorf("GetInstances: Error Getting zones %s", err)
@@ -69,19 +67,18 @@ func (g *GCloud) Instances() error {
 			for index, key := range instance.Tags.Items {
 				newServer.Tags[strconv.FormatInt(int64(index), 10)] = key
 			}
-			g.IpAddresses = append(g.IpAddresses, newServer.Address)
-			g.ServersMap[newServer.Address] = newServer
+			serversMap[newServer.Address] = newServer
 		}
 	}
 	return nil
 }
 
-type GCloudWrapper struct {
+type gCloudWrapper struct {
 	computeService *compute.Service
 	project        string
 }
 
-func newCloudWrapper(computeService *compute.Service, project string) (*GCloudWrapper, error) {
+func newCloudWrapper(computeService *compute.Service, project string) (*gCloudWrapper, error) {
 	if computeService == nil {
 		return nil, fmt.Errorf("computeService: computeService cannot be nil")
 	}
@@ -90,10 +87,10 @@ func newCloudWrapper(computeService *compute.Service, project string) (*GCloudWr
 		return nil, fmt.Errorf("computeService: project cannot be empty")
 	}
 
-	return &GCloudWrapper{computeService: computeService, project: project}, nil
+	return &gCloudWrapper{computeService: computeService, project: project}, nil
 }
 
-func (g *GCloudWrapper) Zones() ([]string, error) {
+func (g *gCloudWrapper) Zones() ([]string, error) {
 	var regionNames []string
 	if g.computeService == nil {
 		return nil, fmt.Errorf("Zones: computeService cannot be nil")
@@ -116,7 +113,7 @@ func (g *GCloudWrapper) Zones() ([]string, error) {
 	return regionNames, nil
 }
 
-func (g *GCloudWrapper) InstancesInRegion(region string) ([]compute.Instance, error) {
+func (g *gCloudWrapper) InstancesInRegion(region string) ([]compute.Instance, error) {
 	var instances []compute.Instance
 
 	if region == "" {

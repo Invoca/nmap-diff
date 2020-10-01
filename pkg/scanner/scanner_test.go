@@ -274,11 +274,11 @@ func TestSetupNmap(t *testing.T) {
 		"2.2.2.2",
 	}
 
-	log.Debug("Setting up Nmap Object with no instances")
+	log.Debug("Setting up nmapStruct Object with no instances")
 	_, err := SetupNmap(emptyInstances)
 	assert.Error(t, err)
 
-	log.Debug("Setting up Nmap Object with list of instances")
+	log.Debug("Setting up nmapStruct Object with list of instances")
 	_, err = SetupNmap(listOfInstances)
 	assert.NoError(t, err)
 }
