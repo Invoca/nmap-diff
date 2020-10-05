@@ -17,25 +17,37 @@ type runner struct {
 	nmapSvc scanner.NmapSvc
 }
 
-func SetupRunner(configObject config.BaseConfig) (*runner, error) {
+func Execute(configObject config.BaseConfig) error {
+	r, err := setupRunner(configObject)
+	if err != nil {
+		return fmt.Errorf("Execute: Error setting up Runner")
+	}
+	err = r.run(configObject)
+	if err != nil {
+		return fmt.Errorf("Execute: Error on run")
+	}
+	return nil
+}
+
+func setupRunner(configObject config.BaseConfig) (*runner, error) {
 	var err error
 
 	r := &runner{}
 	log.Debug("Configuring AWS package")
 
-	r.awsSvc, err = aws.SetupAWS(configObject)
+	r.awsSvc, err = aws.New(configObject)
 	if err != nil {
 		return nil, fmt.Errorf("Run: error configuring AWS %s", err)
 	}
 
 	log.Debug("Configuring slack package")
-	r.slackSvc, err = slack.SetupSlack(configObject)
+	r.slackSvc, err = slack.New(configObject)
 	if err != nil {
 		return nil, fmt.Errorf("Run: Unable to create slack Interface %s", err)
 	}
 
 	log.Debug("Configuring gcloud package")
-	r.gCloudSvc, err = gcloud.Setup(configObject)
+	r.gCloudSvc, err = gcloud.New(configObject)
 	if err != nil {
 		return nil, fmt.Errorf("Run: error Setting up gCloud interface %s", err)
 	}
@@ -43,7 +55,7 @@ func SetupRunner(configObject config.BaseConfig) (*runner, error) {
 	return r, nil
 }
 
-func (r *runner) Run(configObject config.BaseConfig) error {
+func (r *runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Fetching Instances From AWS")
 	serversMap, err := r.awsSvc.GetInstances()
@@ -66,12 +78,7 @@ func (r *runner) Run(configObject config.BaseConfig) error {
 	}
 
 	log.Debug("Setting up Nmap package")
-	nmapScanner, err := scanner.SetupNmap(ipAddresses)
-	if err != nil {
-		return fmt.Errorf("Run: Error setting up nmapStruct interface: %s", err)
-	}
-
-	err = nmapScanner.SetupScan()
+	nmapScanner, err := scanner.New(ipAddresses)
 	if err != nil {
 		return fmt.Errorf("Run: Error setting up nmapStruct interface: %s", err)
 	}
@@ -83,19 +90,19 @@ func (r *runner) Run(configObject config.BaseConfig) error {
 	}
 
 	log.Debug("Parsing results of previous scan")
-	oldInstances, err := nmapScanner.ParsePreviousScan(scanBytes)
+	err = nmapScanner.ParsePreviousScan(scanBytes)
 	if err != nil {
 		return fmt.Errorf("Run: Unable to parse previous results in scanner %s", err)
 	}
 
 	log.Debug("Starting Scan")
-	newInstances, err := nmapScanner.StartScan()
+	err = nmapScanner.StartScan()
 	if err != nil {
 		return fmt.Errorf("Run: Unable to run nmap scan: %s", err)
 	}
 
 	log.Debug("Analyzing the result of current scan and previous scan")
-	instancesExposed, instancesRemoved, err := nmapScanner.DiffScans(newInstances, oldInstances)
+	instancesExposed, instancesRemoved := nmapScanner.DiffScans()
 	if err != nil {
 		return fmt.Errorf("Run: Error Diffing Scans %s", err)
 	}

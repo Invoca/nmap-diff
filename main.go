@@ -25,16 +25,11 @@ func main() {
 		},
 	}
 	log.Info("Starting Run")
-	runnerSvc, err := runner.SetupRunner(configObject)
+	err := runner.Execute(configObject)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}
 
-	err = runnerSvc.Run(configObject)
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
 	log.Info("Run Complete")
 }
