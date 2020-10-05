@@ -47,7 +47,9 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]
 
 		for _, port := range host.Ports {
 			fmt.Printf("\tPort %d/%s %s %s\n", port.ID, port.Protocol, port.State, port.Service.Name)
-			hostMap[port.ID] = true
+			if port.State.String() == "open" {
+				hostMap[port.ID] = true
+			}
 		}
 		instancesRemoved[host.Addresses[0].Addr] = hostMap
 	}
@@ -102,7 +104,9 @@ func (n *nmapStruct) StartScan() (map[string]map[uint16]bool, error) {
 		hostEntry := make(map[uint16]bool)
 
 		for _, port := range host.Ports {
-			hostEntry[port.ID] = true
+			if port.State.String() == "open" {
+				hostEntry[port.ID] = true
+			}
 		}
 		newInstancesExposed[host.Addresses[0].Addr] = hostEntry
 	}
