@@ -15,6 +15,12 @@ import (
 	"io/ioutil"
 )
 
+type AwsInterface interface {
+	GetInstances() (map[string]server.Server, error)
+	UploadObjectToS3(fileData []byte, s3Key string) error
+	GetFileFromS3(s3Key string) ([]byte, error)
+}
+
 type awsSvc struct {
 	regions    []string
 	bucketName string

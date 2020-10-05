@@ -10,6 +10,14 @@ import (
 	"time"
 )
 
+type NmapSvc interface {
+	ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]bool, error)
+	SetupScan() error
+	SetupNmap(ipAddresses []string) (nmapStruct, error)
+	StartScan() (map[string]map[uint16]bool, error)
+	DiffScans(instancesFromCurrentScan map[string]map[uint16]bool, instancesFromPreviousScan map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error)
+}
+
 type nmapStruct struct {
 	ctx           context.Context
 	cancel        context.CancelFunc
@@ -56,6 +64,7 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]
 	return instancesRemoved, nil
 }
 
+//TODO: Put into content of  this function into SetupNmap
 func (n *nmapStruct) SetupScan() error {
 	scanner, err := nmap.NewScanner(
 		nmap.WithTargets(n.ipAddresses...),
