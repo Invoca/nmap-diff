@@ -17,7 +17,19 @@ type runner struct {
 	nmapSvc scanner.NmapSvc
 }
 
-func SetupRunner(configObject config.BaseConfig) (*runner, error) {
+func Execute(configObject config.BaseConfig) error {
+	r, err := setupRunner(configObject)
+	if err != nil {
+		return fmt.Errorf("Execute: Error setting up Runner")
+	}
+	err = r.run(configObject)
+	if err != nil {
+		return fmt.Errorf("Execute: Error on run")
+	}
+	return nil
+}
+
+func setupRunner(configObject config.BaseConfig) (*runner, error) {
 	var err error
 
 	r := &runner{}
@@ -43,7 +55,7 @@ func SetupRunner(configObject config.BaseConfig) (*runner, error) {
 	return r, nil
 }
 
-func (r *runner) Run(configObject config.BaseConfig) error {
+func (r *runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Fetching Instances From AWS")
 	serversMap, err := r.awsSvc.GetInstances()
