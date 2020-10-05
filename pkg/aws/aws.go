@@ -77,9 +77,9 @@ func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[str
 
 	reservations := ec2Instances.Reservations
 
-	for idx, res := range reservations {
+	for _, res := range reservations {
 		log.Debug("Reservation Id", *res.ReservationId, " Num Instances: ", len(res.Instances))
-		for _, inst := range reservations[idx].Instances {
+		for _, inst := range res.Instances {
 			// Status code 16 is Runnning state
 			if *inst.State.Code == 16 {
 				newInstance := server.Server{}
