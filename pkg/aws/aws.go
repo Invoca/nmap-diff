@@ -3,6 +3,8 @@ package aws
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -12,7 +14,6 @@ import (
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/server"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 )
 
 const (

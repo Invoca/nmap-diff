@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+
 	"github.com/port-scanner/pkg/aws"
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/gcloud"
@@ -148,7 +149,7 @@ func (r *runner) run(configObject config.BaseConfig) error {
 			continue
 		}
 
-			//TODO: Refactor to remove the map to slice conversion.
+		//TODO: Refactor to remove the map to slice conversion.
 		portsSlice := make([]uint16, 0)
 		for port, _ := range portsMap {
 			if port != 0 {
