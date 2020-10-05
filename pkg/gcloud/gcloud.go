@@ -12,6 +12,11 @@ import (
 	"strconv"
 )
 
+type GCloudInterface interface {
+	Instances(serversMap map[string]server.Server) error
+
+}
+
 type gCloudSvc struct {
 	computeService wrapper.GCloudWrapper
 }
