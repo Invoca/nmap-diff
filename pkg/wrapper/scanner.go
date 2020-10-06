@@ -10,7 +10,7 @@ type NmapClientWrapper interface {
 }
 
 type NmapSvc interface {
-	CurrentScan() ([]byte, error)
+	CurrentScanResults() ([]byte, error)
 	ParsePreviousScan([]byte) (map[string]map[uint16]bool, error)
 	StartScan([]string) (map[string]map[uint16]bool, error)
 	DiffScans(map[string] map[uint16]bool, map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error)
