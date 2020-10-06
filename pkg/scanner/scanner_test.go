@@ -222,7 +222,11 @@ func TestNmapDiffScans(t *testing.T) {
 func TestRunNmapScan(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	serviceMock := mocks.ScannerMock{}
+<<<<<<< HEAD
 	n, _ := New([]string{"1.1.1.1", "2.2.2.2"})
+=======
+	n, _ := SetupNmap()
+>>>>>>> 30e5326... Updated scanner tests to reflect new state of the package
 	n.nmapClientSvc = &serviceMock
 
 	result := nmap.Run{Hosts: []nmap.Host{

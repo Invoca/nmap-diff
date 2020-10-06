@@ -2,13 +2,14 @@ package runner
 
 import (
 	"fmt"
+	"strconv"
+	"testing"
+
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/mocks"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"strconv"
-	"testing"
 )
 
 type runnerTestCase struct {
