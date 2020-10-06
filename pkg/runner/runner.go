@@ -7,14 +7,15 @@ import (
 	"github.com/port-scanner/pkg/gcloud"
 	"github.com/port-scanner/pkg/scanner"
 	"github.com/port-scanner/pkg/slack"
+	"github.com/port-scanner/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 )
 
 type runner struct {
-	awsSvc aws.AwsInterface
+	awsSvc wrapper.AwsInterface
 	gCloudSvc gcloud.GCloudInterface
-	slackSvc slack.SlackInterface
-	nmapSvc scanner.NmapSvc
+	slackSvc wrapper.SlackInterface
+	nmapSvc wrapper.NmapSvc
 }
 
 func Execute(configObject config.BaseConfig) error {
@@ -37,19 +38,25 @@ func setupRunner(configObject config.BaseConfig) (*runner, error) {
 
 	r.awsSvc, err = aws.New(configObject)
 	if err != nil {
-		return nil, fmt.Errorf("Run: error configuring AWS %s", err)
+		return nil, fmt.Errorf("setupRunner: error configuring AWS %s", err)
 	}
 
 	log.Debug("Configuring slack package")
 	r.slackSvc, err = slack.New(configObject)
 	if err != nil {
-		return nil, fmt.Errorf("Run: Unable to create slack Interface %s", err)
+		return nil, fmt.Errorf("setupRunner: Unable to create slack Interface %s", err)
 	}
 
 	log.Debug("Configuring gcloud package")
 	r.gCloudSvc, err = gcloud.New(configObject)
 	if err != nil {
-		return nil, fmt.Errorf("Run: error Setting up gCloud interface %s", err)
+		return nil, fmt.Errorf("setupRunner: error Setting up gCloud interface %s", err)
+	}
+
+	log.Debug("Setting up Nmap package")
+	r.nmapSvc, err = scanner.SetupNmap()
+	if err != nil {
+		return nil, fmt.Errorf("setupRunner: Error setting up nmapStruct interface: %s", err)
 	}
 
 	return r, nil
@@ -97,18 +104,25 @@ func (r *runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Starting Scan")
 	err = nmapScanner.StartScan()
+
 	if err != nil {
 		return fmt.Errorf("Run: Unable to run nmap scan: %s", err)
 	}
 
 	log.Debug("Analyzing the result of current scan and previous scan")
 	instancesExposed, instancesRemoved := nmapScanner.DiffScans()
+
 	if err != nil {
 		return fmt.Errorf("Run: Error Diffing Scans %s", err)
 	}
 
+	currentScanSlice, err := r.nmapSvc.CurrentScan()
+	if err != nil {
+		return fmt.Errorf("Run: Error Retrieving Current Scan")
+	}
+
 	log.Debug("Uploading current scan to S3")
-	err = r.awsSvc.UploadObjectToS3(nmapScanner.CurrentScan, configObject.PreviousFileName)
+	err = r.awsSvc.UploadObjectToS3(currentScanSlice, configObject.PreviousFileName)
 	if err != nil {
 		return fmt.Errorf("Run: Unable to upload object to S3 %s", err)
 	}

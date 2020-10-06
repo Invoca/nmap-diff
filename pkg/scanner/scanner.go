@@ -10,25 +10,24 @@ import (
 	"time"
 )
 
-type portMap map[uint16]bool
 
 type scanParser struct {
-	currentInstances    map[string]portMap
-	previousInstances   map[string]portMap
-	newInstancesExposed map[string]portMap
-	instancesRemoved    map[string]portMap
+	currentInstances    map[string]wrapper.PortMap
+	previousInstances   map[string]wrapper.PortMap
+	newInstancesExposed map[string]wrapper.PortMap
+	instancesRemoved    map[string]wrapper.PortMap
 }
 
-func newParser(previousInstances map[string]portMap, currentInstances map[string]portMap) *scanParser {
+func newParser(previousInstances map[string]wrapper.PortMap, currentInstances map[string]wrapper.PortMap) *scanParser {
 	p := &scanParser{}
 	p.previousInstances = previousInstances
 	p.currentInstances = currentInstances
-	p.newInstancesExposed = make(map[string]portMap)
-	p.instancesRemoved = make(map[string]portMap)
+	p.newInstancesExposed = make(map[string]wrapper.PortMap)
+	p.instancesRemoved = make(map[string]wrapper.PortMap)
 	return p
 }
 
-func (p *scanParser) ParseScans() (map[string]portMap, map[string]portMap) {
+func (p *scanParser) ParseScans() (map[string]wrapper.PortMap, map[string]wrapper.PortMap) {
 	// Iterate through all instances found in  the current scan.
 	for host, ports := range p.currentInstances {
 		// Check if the instance was found in a previous scan. If that is the case, add all ports exposed on this
@@ -55,7 +54,7 @@ func (p *scanParser) ParseScans() (map[string]portMap, map[string]portMap) {
 // checkPortsAdded goes through all ports found on the current scan and checks to see if they were present on the last
 // scan.
 func (p *scanParser) checkPortsAdded(host string) {
-	portsAdded := make(portMap)
+	portsAdded := make(wrapper.PortMap)
 	for port, _ := range p.currentInstances[host] {
 		if p.previousInstances[host][port] == false {
 			portsAdded[port] = true
@@ -70,7 +69,7 @@ func (p *scanParser) checkPortsAdded(host string) {
 // checkPortsRemoved goes through all of the opened ports on the last scan of the host and checks if they were closed on
 // the last scan.
 func (p *scanParser) checkPortsRemoved(host string) {
-	portsRemoved := make(portMap)
+	portsRemoved := make(wrapper.PortMap)
 	for port, _ := range p.previousInstances[host] {
 		if p.currentInstances[host][port] == false {
 			portsRemoved[port] = true
@@ -95,10 +94,10 @@ type nmapStruct struct {
 	cancel            context.CancelFunc
 	ipAddresses       []string
 	nmapClientSvc     wrapper.NmapClientWrapper
-	CurrentScan       []byte
-	currentInstances  map[string]portMap
-	previousInstances map[string]portMap
+	currentInstances  map[string]wrapper.PortMap
+	previousInstances map[string]wrapper.PortMap
 	scanParser        *scanParser
+	currentScanSlice []byte
 }
 
 func New(ipAddresses []string) (*nmapStruct, error) {
@@ -106,11 +105,19 @@ func New(ipAddresses []string) (*nmapStruct, error) {
 	if ipAddresses == nil {
 		return n, fmt.Errorf("New: Error Initializing nmapStruct interface. ipAddresses nil. ")
 	}
-
-	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
 	n.ipAddresses = ipAddresses
-	n.currentInstances = make(map[string]portMap)
-	n.previousInstances = make(map[string]portMap)
+	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
+	n.currentInstances = make(map[string]wrapper.PortMap)
+	n.previousInstances = make(map[string]wrapper.PortMap)
+	n.scanParser = newParser(n.previousInstances, n.currentInstances)
+	return n, nil
+}
+
+func SetupNmap() (*nmapStruct, error) {
+	n := &nmapStruct{}
+	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
+	n.currentInstances = make(map[string]wrapper.PortMap)
+	n.previousInstances = make(map[string]wrapper.PortMap)
 	n.scanParser = newParser(n.previousInstances, n.currentInstances)
 	return n, nil
 }
@@ -126,7 +133,7 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) error {
 			continue
 		}
 
-		hostMap := make(portMap)
+		hostMap := make(wrapper.PortMap)
 
 		fmt.Printf("Host %q:\n", host.Addresses[0])
 
@@ -141,23 +148,15 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) error {
 	return nil
 }
 
-//TODO: Put into content of  this function into SetupNmap
-func (n *nmapStruct) SetupScan() error {
-	scanner, err := nmap.NewScanner(
-		nmap.WithTargets(n.ipAddresses...),
-		nmap.WithContext(n.ctx),
-		nmap.WithSkipHostDiscovery(),
-	)
-
-	if err != nil {
-		return fmt.Errorf("unable to create scanner scanner: %v", err)
+func (n *nmapStruct) CurrentScan() ([]byte, error) {
+	if n.currentScanSlice == nil {
+		return nil, fmt.Errorf("ParsePreviousScan")
 	}
-	n.nmapClientSvc = scanner
-	return nil
+	return n.currentScanSlice, nil
 }
 
 func (n *nmapStruct) StartScan() error {
-	newInstancesExposed := make(map[string]portMap)
+	newInstancesExposed := make(map[string]wrapper.PortMap)
 	defer n.cancel()
 
 	if n.nmapClientSvc == nil {
@@ -165,7 +164,7 @@ func (n *nmapStruct) StartScan() error {
 	}
 
 	log.Debug("Starting Scan")
-	result, warnings, err := n.nmapClientSvc.Run()
+	result, warnings, err := n.nmapClientSvc.Run(n.ipAddresses, n.ctx)
 
 	if err != nil {
 		return fmt.Errorf("StartScan: unable to run nmap scan: %s", err)
@@ -180,14 +179,14 @@ func (n *nmapStruct) StartScan() error {
 		return fmt.Errorf("StartScan: Error reading previous scan %s", err)
 	}
 
-	n.CurrentScan = currentScan
+	n.currentScanSlice = currentScan
 
 	// Add all ports that are open
 	for _, host := range result.Hosts {
 		if len(host.Ports) == 0 || len(host.Addresses) == 0 {
 			continue
 		}
-		hostEntry := make(portMap)
+		hostEntry := make(wrapper.PortMap)
 
 		for _, port := range host.Ports {
 			if port.State.String() == "open" {
@@ -203,7 +202,7 @@ func (n *nmapStruct) StartScan() error {
 // DiffScans takes a map of instances from a past scan and a current one. The function returns instances with ports
 // that are were opened and closed. It does this by comparing the two maps that are passed to the function and iterating
 // through each.
-func (n *nmapStruct) DiffScans() (map[string]portMap, map[string]portMap) {
+func (n *nmapStruct) DiffScans() (map[string]wrapper.PortMap, map[string]wrapper.PortMap) {
 	log.WithFields(log.Fields{
 		"previousInstanceCount": len(n.previousInstances),
 		"currentInstanceCount":  len(n.currentInstances),

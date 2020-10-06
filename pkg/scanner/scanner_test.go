@@ -2,14 +2,15 @@ package scanner
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strconv"
+	"testing"
+
 	"github.com/Ullaakut/nmap"
 	"github.com/port-scanner/pkg/mocks"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io/ioutil"
-	"strconv"
-	"testing"
 )
 
 type scannerParseTestCase struct {
@@ -99,11 +100,11 @@ func TestNmapDiffScans(t *testing.T) {
 	thirdInstanceName := "An Instance Of The Impossible"
 	thirdInstancePort := uint16(0)
 
-	instancesFromCurrentScan := make(map[string]portMap)
-	instancesFromPreviousScan := make(map[string]portMap)
+	instancesFromCurrentScan := make(map[string]PortMap)
+	instancesFromPreviousScan := make(map[string]PortMap)
 
-	newInstancesExposed := make(map[string]portMap)
-	instancesClosed := make(map[string]portMap)
+	newInstancesExposed := make(map[string]PortMap)
+	instancesClosed := make(map[string]PortMap)
 
 	n, _ := New([]string{})
 
@@ -111,10 +112,10 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "Three new instances are found and should be added to NewInstancesExposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]portMap)
-				instancesFromPreviousScan = make(map[string]portMap)
-				instancesClosed = make(map[string]portMap)
-				newInstancesExposed = make(map[string]portMap)
+				instancesFromCurrentScan = make(map[string]PortMap)
+				instancesFromPreviousScan = make(map[string]PortMap)
+				instancesClosed = make(map[string]PortMap)
+				newInstancesExposed = make(map[string]PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
@@ -135,10 +136,10 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "One new instances was found and an old one was removed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]portMap)
-				instancesFromPreviousScan = make(map[string]portMap)
-				instancesClosed = make(map[string]portMap)
-				newInstancesExposed = make(map[string]portMap)
+				instancesFromCurrentScan = make(map[string]PortMap)
+				instancesFromPreviousScan = make(map[string]PortMap)
+				instancesClosed = make(map[string]PortMap)
+				newInstancesExposed = make(map[string]PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
@@ -156,10 +157,10 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "One new instance was found and nothing was previously exposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]portMap)
-				instancesFromPreviousScan = make(map[string]portMap)
-				instancesClosed = make(map[string]portMap)
-				newInstancesExposed = make(map[string]portMap)
+				instancesFromCurrentScan = make(map[string]PortMap)
+				instancesFromPreviousScan = make(map[string]PortMap)
+				instancesClosed = make(map[string]PortMap)
+				newInstancesExposed = make(map[string]PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
@@ -174,10 +175,10 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "One instance was previously found and now nothing is exposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]portMap)
-				instancesFromPreviousScan = make(map[string]portMap)
-				instancesClosed = make(map[string]portMap)
-				newInstancesExposed = make(map[string]portMap)
+				instancesFromCurrentScan = make(map[string]PortMap)
+				instancesFromPreviousScan = make(map[string]PortMap)
+				instancesClosed = make(map[string]PortMap)
+				newInstancesExposed = make(map[string]PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
@@ -192,10 +193,10 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "Nothing was previously found and now nothing is exposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]portMap)
-				instancesFromPreviousScan = make(map[string]portMap)
-				instancesClosed = make(map[string]portMap)
-				newInstancesExposed = make(map[string]portMap)
+				instancesFromCurrentScan = make(map[string]PortMap)
+				instancesFromPreviousScan = make(map[string]PortMap)
+				instancesClosed = make(map[string]PortMap)
+				newInstancesExposed = make(map[string]PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
