@@ -276,20 +276,3 @@ func TestRunNmapScan(t *testing.T) {
 	}
 
 }
-
-func TestSetupNmap(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-	var emptyInstances []string
-	listOfInstances := []string{
-		"1.1.1.1",
-		"2.2.2.2",
-	}
-
-	log.Debug("Setting up nmapStruct Object with no instances")
-	_, err := SetupNmap(emptyInstances)
-	assert.Error(t, err)
-
-	log.Debug("Setting up nmapStruct Object with list of instances")
-	_, err = SetupNmap(listOfInstances)
-	assert.NoError(t, err)
-}
