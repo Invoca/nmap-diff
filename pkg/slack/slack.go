@@ -11,11 +11,6 @@ import (
 	"strconv"
 )
 
-type SlackInterface interface {
-	PrintOpenedPorts(host server.Server, ports []uint16) error
-	PrintClosedPorts(host server.Server, ports []uint16) error
-}
-
 type markdownText struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
