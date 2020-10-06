@@ -35,12 +35,16 @@ func TestParsePreviousScan(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	log.Debug("Starting TestParsePreviousScan")
 
+<<<<<<< HEAD
 	ipAddresses := []string{
 		"1.1.1.1",
 		"2.2.2.2",
 	}
 
 	nmapInterface, _ := New(ipAddresses)
+=======
+	nmapInterface, _ := SetupNmap()
+>>>>>>> 30e5326... Updated scanner tests to reflect new state of the package
 
 	testCases := []scannerParseTestCase{
 		{

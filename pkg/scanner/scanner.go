@@ -148,9 +148,9 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) error {
 	return nil
 }
 
-func (n *nmapStruct) CurrentScan() ([]byte, error) {
+func (n *nmapStruct) CurrentScanResults() ([]byte, error) {
 	if n.currentScanSlice == nil {
-		return nil, fmt.Errorf("ParsePreviousScan")
+		return nil, fmt.Errorf("CurrentScanResults: currentScanSlice is nil")
 	}
 	return n.currentScanSlice, nil
 }

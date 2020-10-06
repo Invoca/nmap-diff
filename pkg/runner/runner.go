@@ -21,11 +21,11 @@ type runner struct {
 func Execute(configObject config.BaseConfig) error {
 	r, err := setupRunner(configObject)
 	if err != nil {
-		return fmt.Errorf("Execute: Error setting up Runner")
+		return fmt.Errorf("Execute: Error setting up Runner %s", err)
 	}
 	err = r.run(configObject)
 	if err != nil {
-		return fmt.Errorf("Execute: Error on run")
+		return fmt.Errorf("Execute: Error on run %s", err)
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func (r *runner) run(configObject config.BaseConfig) error {
 		return fmt.Errorf("Run: Error Diffing Scans %s", err)
 	}
 
-	currentScanSlice, err := r.nmapSvc.CurrentScan()
+	currentScanSlice, err := r.nmapSvc.CurrentScanResults()
 	if err != nil {
 		return fmt.Errorf("Run: Error Retrieving Current Scan")
 	}

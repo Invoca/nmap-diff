@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"github.com/Ullaakut/nmap"
 	"github.com/port-scanner/pkg/wrapper"
 )
@@ -13,7 +14,7 @@ type ScannerMock struct {
 	ResettableMock
 }
 
-func (g *ScannerMock) Run() (result *nmap.Run, warnings []string, err error) {
+func (g *ScannerMock) Run([]string, context.Context) (*nmap.Run, []string, error) {
 	args := g.Called(nil)
 	if args.Get(0) == nil {
 		return nil, []string{}, args.Error(1)
