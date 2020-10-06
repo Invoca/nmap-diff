@@ -2,10 +2,11 @@ package scanner
 
 import (
 	"fmt"
-	"github.com/port-scanner/pkg/wrapper"
 	"io/ioutil"
 	"strconv"
 	"testing"
+
+	"github.com/port-scanner/pkg/wrapper"
 
 	"github.com/Ullaakut/nmap"
 	"github.com/port-scanner/pkg/mocks"
