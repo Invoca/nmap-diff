@@ -15,7 +15,6 @@ import (
 	"io/ioutil"
 )
 
-
 type awsSvc struct {
 	regions    []string
 	bucketName string

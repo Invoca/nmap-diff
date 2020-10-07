@@ -19,7 +19,6 @@ type nmapStruct struct {
 }
 
 type nmapWrapper struct {
-
 }
 
 func (n *nmapWrapper) Run(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {

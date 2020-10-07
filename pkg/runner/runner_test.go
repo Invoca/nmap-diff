@@ -17,7 +17,7 @@ type runnerTestCase struct {
 	shouldError bool
 }
 
-func TestRun (t *testing.T) {
+func TestRun(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	configObject := config.BaseConfig{}
 	nmapMock := mocks.NmapScannerMock{}
@@ -39,8 +39,8 @@ func TestRun (t *testing.T) {
 				currentScanSlice := make([]byte, 0)
 				//serversMap := make(map[string]server.Server)
 				//scanBytes := make([]byte, 0)
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)
 				instancesRemoved := make(map[string]map[uint16]bool)
 				nmapMock.Reset()
@@ -99,7 +99,7 @@ func TestRun (t *testing.T) {
 		{
 			desc: "Error if the previous report was not able to be parsed",
 			setup: func() {
-				oldInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
 				nmapMock.Reset()
 				awsMock.Reset()
 				gcloudMock.Reset()
@@ -114,8 +114,8 @@ func TestRun (t *testing.T) {
 		{
 			desc: "Error if the scan was not able to be started",
 			setup: func() {
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				nmapMock.Reset()
 				awsMock.Reset()
 				gcloudMock.Reset()
@@ -131,8 +131,8 @@ func TestRun (t *testing.T) {
 		{
 			desc: "Error if the previous the scan was not able to be compared with the current one",
 			setup: func() {
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)
 				instancesRemoved := make(map[string]map[uint16]bool)
 				nmapMock.Reset()
@@ -152,8 +152,8 @@ func TestRun (t *testing.T) {
 			desc: "Error if the byte slice of the current scan is not able to be retrieved",
 			setup: func() {
 				currentScanSlice := make([]byte, 0)
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)
 				instancesRemoved := make(map[string]map[uint16]bool)
 				nmapMock.Reset()
@@ -174,8 +174,8 @@ func TestRun (t *testing.T) {
 			desc: "Error if the current report is not able to be uploaded to S3",
 			setup: func() {
 				currentScanSlice := make([]byte, 0)
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)
 				instancesRemoved := make(map[string]map[uint16]bool)
 				nmapMock.Reset()
@@ -197,8 +197,8 @@ func TestRun (t *testing.T) {
 			desc: "Error if the opened ports are not able to be posted to slack",
 			setup: func() {
 				currentScanSlice := make([]byte, 0)
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)
 				instancesExposed["1.1.1.1"] = make(map[uint16]bool)
 				instancesExposed["1.1.1.1"][1] = true
@@ -223,8 +223,8 @@ func TestRun (t *testing.T) {
 			desc: "Error if the closed ports are not able to be posted to slack",
 			setup: func() {
 				currentScanSlice := make([]byte, 0)
-				oldInstances := make(map[string] map[uint16]bool)
-				newInstances := make(map[string] map[uint16]bool)
+				oldInstances := make(map[string]map[uint16]bool)
+				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)
 				instancesExposed["1.1.1.1"] = make(map[uint16]bool)
 				instancesExposed["1.1.1.1"][1] = true

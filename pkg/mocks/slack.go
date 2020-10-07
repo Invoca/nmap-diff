@@ -19,7 +19,7 @@ func (s *SlackInterfaceMock) PrintClosedPorts(host server.Server, ports []uint16
 	args := s.Called(nil)
 	if args.Get(0) == nil {
 		return args.Error(0)
-	}  else {
+	} else {
 		return args.Error(0)
 	}
 }
