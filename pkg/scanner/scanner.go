@@ -3,13 +3,13 @@ package scanner
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"time"
+
 	"github.com/Ullaakut/nmap"
 	"github.com/port-scanner/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"time"
 )
-
 
 type scanParser struct {
 	currentInstances    map[string]wrapper.PortMap
@@ -97,7 +97,7 @@ type nmapStruct struct {
 	currentInstances  map[string]wrapper.PortMap
 	previousInstances map[string]wrapper.PortMap
 	scanParser        *scanParser
-	currentScanSlice []byte
+	currentScanSlice  []byte
 }
 
 func New(ipAddresses []string) (*nmapStruct, error) {

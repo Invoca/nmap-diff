@@ -52,7 +52,7 @@ func (n *NmapScannerMock) StartScan([]string) (map[string]map[uint16]bool, error
 	}
 }
 
-func (n *NmapScannerMock) DiffScans(map[string] map[uint16]bool, map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error) {
+func (n *NmapScannerMock) DiffScans(map[string]map[uint16]bool, map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error) {
 	args := n.Called(nil)
 	if args.Get(0) == nil {
 		return nil, nil, args.Get(0).(error)

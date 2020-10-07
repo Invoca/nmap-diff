@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 )
 
+<<<<<<< HEAD
 const (
 	instanceRunningState = int64(16)
 )
@@ -25,6 +26,8 @@ type AwsInterface interface {
 	GetFileFromS3(s3Key string) ([]byte, error)
 }
 
+=======
+>>>>>>> 74163a4... Ran go fmt
 type awsSvc struct {
 	regions    []string
 	bucketName string

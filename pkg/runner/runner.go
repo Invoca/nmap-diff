@@ -12,10 +12,10 @@ import (
 )
 
 type runner struct {
-	awsSvc wrapper.AwsInterface
+	awsSvc    wrapper.AwsInterface
 	gCloudSvc wrapper.GCloudInterface
-	slackSvc wrapper.SlackInterface
-	nmapSvc wrapper.NmapSvc
+	slackSvc  wrapper.SlackInterface
+	nmapSvc   wrapper.NmapSvc
 }
 
 func Execute(configObject config.BaseConfig) error {
@@ -92,7 +92,7 @@ func (r *runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Fetching previous scan from S3")
 	scanBytes, err := r.awsSvc.GetFileFromS3(configObject.PreviousFileName)
-	if err != nil 	{
+	if err != nil {
 		return fmt.Errorf("Run: Error getting object %s", err)
 	}
 
