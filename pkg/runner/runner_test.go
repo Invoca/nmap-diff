@@ -38,6 +38,11 @@ func TestRun(t *testing.T) {
 			desc: "Run without error if other packages return successfully",
 			setup: func() {
 				currentScanSlice := make([]byte, 0)
+<<<<<<< HEAD
+=======
+				//serversMap := make(map[string]server.Server)
+				//scanBytes := make([]byte, 0)
+>>>>>>> 74163a4... Ran go fmt
 				oldInstances := make(map[string]map[uint16]bool)
 				newInstances := make(map[string]map[uint16]bool)
 				instancesExposed := make(map[string]map[uint16]bool)

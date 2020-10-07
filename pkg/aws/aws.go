@@ -20,7 +20,6 @@ const (
 	instanceRunningState = int64(16)
 )
 
-
 type awsSvc struct {
 	regions    []string
 	bucketName string
