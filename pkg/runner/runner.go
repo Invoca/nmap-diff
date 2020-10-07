@@ -6,15 +6,17 @@ import (
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/gcloud"
 	"github.com/port-scanner/pkg/scanner"
+	"github.com/port-scanner/pkg/server"
 	"github.com/port-scanner/pkg/slack"
 	"github.com/port-scanner/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 )
 
 type runner struct {
-	awsSvc    wrapper.AwsInterface
-	gCloudSvc wrapper.GCloudInterface
-	slackSvc  wrapper.SlackInterface
+	awsSvc    wrapper.AwsSvc
+	gCloudSvc wrapper.GCloudSvc
+	slackSvc  wrapper.SlackSvc
 	nmapSvc   wrapper.NmapSvc
 }
 
@@ -65,7 +67,8 @@ func setupRunner(configObject config.BaseConfig) (*runner, error) {
 func (r *runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Fetching Instances From AWS")
-	serversMap, err := r.awsSvc.GetInstances()
+	serversMap := make(map[string]server.Server)
+	err := r.awsSvc.Instances(serversMap)
 	if err != nil {
 		return fmt.Errorf("Run: Unable to run get AWS Instances: %s", err)
 	}
@@ -96,7 +99,7 @@ func (r *runner) run(configObject config.BaseConfig) error {
 		return fmt.Errorf("Run: Unable to parse previous results in scanner %s", err)
 	}
 
-	log.Debug("Starting Scan")
+	log.Debug("Starting Scan With " + strconv.FormatInt(int64(len(ipAddresses)), 10) + " Instances")
 	newInstances, err := r.nmapSvc.StartScan(ipAddresses)
 	if err != nil {
 		return fmt.Errorf("Run: Unable to run nmap scan: %s", err)

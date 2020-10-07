@@ -46,13 +46,13 @@ func createGCloudInterface(baseConfig config.BaseConfig) (*gCloudWrapper, error)
 func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 	regionNames, err := g.computeService.Zones()
 	if err != nil {
-		return fmt.Errorf("GetInstances: Error Getting zones %s", err)
+		return fmt.Errorf("Instances: Error Getting zones %s", err)
 	}
 
 	for _, region := range regionNames {
 		instances, err := g.computeService.InstancesInRegion(region)
 		if err != nil {
-			return fmt.Errorf("GetInstances: Error listing Instances %s", err)
+			return fmt.Errorf("Instances: Error listing Instances %s", err)
 		}
 		log.Debug(len(instances))
 
