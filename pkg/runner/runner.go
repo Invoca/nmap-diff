@@ -20,7 +20,7 @@ type runner struct {
 }
 
 func Execute(configObject config.BaseConfig) error {
-	r, err := setupRunner(configObject)
+	r, err := newRunner(configObject)
 	if err != nil {
 		return fmt.Errorf("Execute: Error setting up Runner %s", err)
 	}
@@ -31,7 +31,7 @@ func Execute(configObject config.BaseConfig) error {
 	return nil
 }
 
-func setupRunner(configObject config.BaseConfig) (*runner, error) {
+func newRunner(configObject config.BaseConfig) (*runner, error) {
 	var err error
 
 	r := &runner{}
@@ -39,21 +39,20 @@ func setupRunner(configObject config.BaseConfig) (*runner, error) {
 
 	r.awsSvc, err = aws.New(configObject)
 	if err != nil {
-		return nil, fmt.Errorf("setupRunner: error configuring AWS %s", err)
+		return nil, fmt.Errorf("newRunner: error configuring AWS %s", err)
 	}
 
 	log.Debug("Configuring slack package")
 	r.slackSvc, err = slack.New(configObject)
 	if err != nil {
-		return nil, fmt.Errorf("setupRunner: Unable to create slack Interface %s", err)
+		return nil, fmt.Errorf("newRunner: Unable to create slack Interface %s", err)
 	}
 
 	log.Debug("Configuring gcloud package")
 	r.gCloudSvc, err = gcloud.New(configObject)
 	if err != nil {
-		return nil, fmt.Errorf("setupRunner: error Setting up gCloud interface %s", err)
+		return nil, fmt.Errorf("newRunner: error Setting up gCloud interface %s", err)
 	}
-
 	return r, nil
 }
 
@@ -149,7 +148,7 @@ func (r *runner) run(configObject config.BaseConfig) error {
 			continue
 		}
 
-		//TODO: Refactor to remove the map to slice conversion.
+			//TODO: Refactor to remove the map to slice conversion.
 		portsSlice := make([]uint16, 0)
 		for port, _ := range portsMap {
 			if port != 0 {
