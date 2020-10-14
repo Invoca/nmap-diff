@@ -10,13 +10,13 @@ import (
 )
 
 type Config struct {
-	IncludeAWS bool `json:"includeAWS"`
-	BucketName  string `json:"bucketName"`
-	PreviousFileName string `json:"previousFileName"`
-	IncludeGCloud bool `json:"includeGCloud"`
+	IncludeAWS         bool   `json:"includeAWS"`
+	BucketName         string `json:"bucketName"`
+	PreviousFileName   string `json:"previousFileName"`
+	IncludeGCloud      bool   `json:"includeGCloud"`
 	ServiceAccountPath string `json:"serviceAccountPath"`
-	SlackURL string `json:"slackURL"`
-	ProjectName string `json:"projectName"`
+	SlackURL           string `json:"slackURL"`
+	ProjectName        string `json:"projectName"`
 }
 
 type server struct {
@@ -50,23 +50,23 @@ func (s *server) scanHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&c)
 	if err != nil {
 		log.WithField("error", err).Error("Error Decoding Body")
-		http.Error(w, "Error Decoding Body: " + err.Error(), 500)
+		http.Error(w, "Error Decoding Body: "+err.Error(), 500)
 		w.WriteHeader(500)
 		return
 	}
 
 	log.Debug(c)
 
-	gCloudConfig := config.GCloudConfig {
+	gCloudConfig := config.GCloudConfig{
 		ServiceAccountPath: c.ServiceAccountPath,
-		ProjectName: c.ProjectName,
+		ProjectName:        c.ProjectName,
 	}
 
-	slackConfig := config.SlackConfig {
+	slackConfig := config.SlackConfig{
 		SlackURL: c.SlackURL,
 	}
 
-	configObject := config.BaseConfig {
+	configObject := config.BaseConfig{
 		IncludeAWS:       c.IncludeAWS,
 		BucketName:       c.BucketName,
 		PreviousFileName: c.PreviousFileName,
@@ -81,7 +81,7 @@ func (s *server) scanHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.WithField("error", err).Error("Error Executing runner")
-		http.Error(w, "Error Executing runner: " + err.Error(), 500)
+		http.Error(w, "Error Executing runner: "+err.Error(), 500)
 		w.WriteHeader(500)
 	}
 }

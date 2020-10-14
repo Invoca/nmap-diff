@@ -15,13 +15,13 @@ import (
 )
 
 // It feels really hacky to include the originial struct we are testing, but I do not know of a better way.
-type TestScanHandler struct{
+type TestScanHandler struct {
 	serverStruct server
 }
 
 type scanHandlerTestCase struct {
 	desc        string
-	setup 		func()
+	setup       func()
 	requestBody func() []byte
 	shouldError bool
 }
