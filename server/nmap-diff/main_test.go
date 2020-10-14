@@ -14,11 +14,6 @@ import (
 	"testing"
 )
 
-// It feels really hacky to include the originial struct we are testing, but I do not know of a better way.
-type TestScanHandler struct {
-	serverStruct server
-}
-
 type scanHandlerTestCase struct {
 	desc        string
 	setup       func()
@@ -26,18 +21,11 @@ type scanHandlerTestCase struct {
 	shouldError bool
 }
 
-func (h *TestScanHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.serverStruct.scanHandler(w, r)
-}
-
 func TestSetupScanner(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	runnerMock := mocks.RunnerMock{}
-
-	mainServer := server{runner: &runnerMock}
-
-	serverMock := TestScanHandler{serverStruct: mainServer}
+	serverMock := server{runner: &runnerMock}
 
 	testCases := []scanHandlerTestCase{
 		{
@@ -112,7 +100,7 @@ func TestSetupScanner(t *testing.T) {
 		}).Debug("Starting testCase " + strconv.Itoa(index))
 		testCase.setup()
 
-		server := httptest.NewServer(http.HandlerFunc(serverMock.serverStruct.scanHandler))
+		server := httptest.NewServer(http.HandlerFunc(serverMock.scanHandler))
 
 		resp, err := http.Post(server.URL, "", bytes.NewReader(testCase.requestBody()))
 		server.Close()
