@@ -39,7 +39,7 @@ func TestParsePreviousScan(t *testing.T) {
 		"2.2.2.2",
 	}
 
-	nmapInterface, _ := SetupNmap(ipAddresses)
+	nmapInterface, _ := New(ipAddresses)
 
 	testCases := []scannerParseTestCase{
 		{
@@ -78,7 +78,7 @@ func TestParsePreviousScan(t *testing.T) {
 
 		fileContentsToTest := testCase.setup()
 
-		_, err := nmapInterface.ParsePreviousScan(fileContentsToTest)
+		err := nmapInterface.ParsePreviousScan(fileContentsToTest)
 
 		if testCase.shouldError {
 			assert.Error(t, err)
@@ -99,22 +99,26 @@ func TestNmapDiffScans(t *testing.T) {
 	thirdInstanceName := "An Instance Of The Impossible"
 	thirdInstancePort := uint16(0)
 
-	instancesFromCurrentScan := make(map[string]map[uint16]bool)
-	instancesFromPreviousScan := make(map[string]map[uint16]bool)
+	instancesFromCurrentScan := make(map[string]portMap)
+	instancesFromPreviousScan := make(map[string]portMap)
 
-	newInstancesExposed := make(map[string]map[uint16]bool)
-	instancesClosed := make(map[string]map[uint16]bool)
+	newInstancesExposed := make(map[string]portMap)
+	instancesClosed := make(map[string]portMap)
 
-	n, _ := SetupNmap([]string{})
+	n, _ := New([]string{})
 
 	testCases := []scannerDiffTestCase{
 		{
 			desc: "Three new instances are found and should be added to NewInstancesExposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]map[uint16]bool)
-				instancesFromPreviousScan = make(map[string]map[uint16]bool)
-				instancesClosed = make(map[string]map[uint16]bool)
-				newInstancesExposed = make(map[string]map[uint16]bool)
+				instancesFromCurrentScan = make(map[string]portMap)
+				instancesFromPreviousScan = make(map[string]portMap)
+				instancesClosed = make(map[string]portMap)
+				newInstancesExposed = make(map[string]portMap)
+				n.scanParser.currentInstances = instancesFromCurrentScan
+				n.scanParser.previousInstances = instancesFromPreviousScan
+				n.scanParser.newInstancesExposed = newInstancesExposed
+				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromCurrentScan[firstInstanceName] = make(map[uint16]bool)
 				instancesFromCurrentScan[secondInstanceName] = make(map[uint16]bool)
 				instancesFromCurrentScan[thirdInstanceName] = make(map[uint16]bool)
@@ -131,10 +135,14 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "One new instances was found and an old one was removed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]map[uint16]bool)
-				instancesFromPreviousScan = make(map[string]map[uint16]bool)
-				instancesClosed = make(map[string]map[uint16]bool)
-				newInstancesExposed = make(map[string]map[uint16]bool)
+				instancesFromCurrentScan = make(map[string]portMap)
+				instancesFromPreviousScan = make(map[string]portMap)
+				instancesClosed = make(map[string]portMap)
+				newInstancesExposed = make(map[string]portMap)
+				n.scanParser.currentInstances = instancesFromCurrentScan
+				n.scanParser.previousInstances = instancesFromPreviousScan
+				n.scanParser.newInstancesExposed = newInstancesExposed
+				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromPreviousScan[firstInstanceName] = make(map[uint16]bool)
 				instancesFromCurrentScan[secondInstanceName] = make(map[uint16]bool)
 				instancesFromPreviousScan[firstInstanceName][firstInstancePort] = true
@@ -148,10 +156,14 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "One new instance was found and nothing was previously exposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]map[uint16]bool)
-				instancesFromPreviousScan = make(map[string]map[uint16]bool)
-				instancesClosed = make(map[string]map[uint16]bool)
-				newInstancesExposed = make(map[string]map[uint16]bool)
+				instancesFromCurrentScan = make(map[string]portMap)
+				instancesFromPreviousScan = make(map[string]portMap)
+				instancesClosed = make(map[string]portMap)
+				newInstancesExposed = make(map[string]portMap)
+				n.scanParser.currentInstances = instancesFromCurrentScan
+				n.scanParser.previousInstances = instancesFromPreviousScan
+				n.scanParser.newInstancesExposed = newInstancesExposed
+				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromCurrentScan[firstInstanceName] = make(map[uint16]bool)
 				instancesFromCurrentScan[firstInstanceName][firstInstancePort] = true
 			},
@@ -162,10 +174,14 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "One instance was previously found and now nothing is exposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]map[uint16]bool)
-				instancesFromPreviousScan = make(map[string]map[uint16]bool)
-				instancesClosed = make(map[string]map[uint16]bool)
-				newInstancesExposed = make(map[string]map[uint16]bool)
+				instancesFromCurrentScan = make(map[string]portMap)
+				instancesFromPreviousScan = make(map[string]portMap)
+				instancesClosed = make(map[string]portMap)
+				newInstancesExposed = make(map[string]portMap)
+				n.scanParser.currentInstances = instancesFromCurrentScan
+				n.scanParser.previousInstances = instancesFromPreviousScan
+				n.scanParser.newInstancesExposed = newInstancesExposed
+				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromPreviousScan[firstInstanceName] = make(map[uint16]bool)
 				instancesFromPreviousScan[firstInstanceName][firstInstancePort] = true
 			},
@@ -176,10 +192,14 @@ func TestNmapDiffScans(t *testing.T) {
 		{
 			desc: "Nothing was previously found and now nothing is exposed",
 			setup: func() {
-				instancesFromCurrentScan = make(map[string]map[uint16]bool)
-				instancesFromPreviousScan = make(map[string]map[uint16]bool)
-				instancesClosed = make(map[string]map[uint16]bool)
-				newInstancesExposed = make(map[string]map[uint16]bool)
+				instancesFromCurrentScan = make(map[string]portMap)
+				instancesFromPreviousScan = make(map[string]portMap)
+				instancesClosed = make(map[string]portMap)
+				newInstancesExposed = make(map[string]portMap)
+				n.scanParser.currentInstances = instancesFromCurrentScan
+				n.scanParser.previousInstances = instancesFromPreviousScan
+				n.scanParser.newInstancesExposed = newInstancesExposed
+				n.scanParser.instancesRemoved = instancesClosed
 			},
 			assertions: func() {
 				assert.Equal(t, 0, len(newInstancesExposed))
@@ -194,7 +214,7 @@ func TestNmapDiffScans(t *testing.T) {
 		}).Debug("Starting testCase " + strconv.Itoa(index))
 
 		testCase.setup()
-		newInstancesExposed, instancesClosed, _ = n.DiffScans(instancesFromCurrentScan, instancesFromPreviousScan)
+		n.DiffScans()
 		testCase.assertions()
 	}
 }
@@ -202,7 +222,7 @@ func TestNmapDiffScans(t *testing.T) {
 func TestRunNmapScan(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	serviceMock := mocks.ScannerMock{}
-	n, _ := SetupNmap([]string{"1.1.1.1", "2.2.2.2"})
+	n, _ := New([]string{"1.1.1.1", "2.2.2.2"})
 	n.nmapClientSvc = &serviceMock
 
 	result := nmap.Run{Hosts: []nmap.Host{
@@ -266,7 +286,7 @@ func TestRunNmapScan(t *testing.T) {
 		}).Debug("Starting testCase " + strconv.Itoa(index))
 
 		testCase.setup()
-		_, err := n.StartScan()
+		err := n.StartScan()
 		if testCase.shouldError {
 			assert.Error(t, err)
 		} else {
@@ -286,10 +306,10 @@ func TestSetupNmap(t *testing.T) {
 	}
 
 	log.Debug("Setting up nmapStruct Object with no instances")
-	_, err := SetupNmap(emptyInstances)
+	_, err := New(emptyInstances)
 	assert.Error(t, err)
 
 	log.Debug("Setting up nmapStruct Object with list of instances")
-	_, err = SetupNmap(listOfInstances)
+	_, err = New(listOfInstances)
 	assert.NoError(t, err)
 }

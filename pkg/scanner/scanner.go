@@ -10,30 +10,107 @@ import (
 	"time"
 )
 
-type nmapStruct struct {
-	ctx           context.Context
-	cancel        context.CancelFunc
-	ipAddresses   []string
-	nmapClientSvc wrapper.NmapClientWrapper
-	CurrentScan   []byte
+type portMap map[uint16]bool
+
+type scanParser struct {
+	currentInstances    map[string]portMap
+	previousInstances   map[string]portMap
+	newInstancesExposed map[string]portMap
+	instancesRemoved    map[string]portMap
 }
 
-func SetupNmap(ipAddresses []string) (nmapStruct, error) {
-	n := nmapStruct{}
+func newParser(previousInstances map[string]portMap, currentInstances map[string]portMap) *scanParser {
+	p := &scanParser{}
+	p.previousInstances = previousInstances
+	p.currentInstances = currentInstances
+	p.newInstancesExposed = make(map[string]portMap)
+	p.instancesRemoved = make(map[string]portMap)
+	return p
+}
+
+func (p *scanParser) ParseScans() (map[string]portMap, map[string]portMap) {
+	// Iterate through all instances found in  the current scan.
+	for host, ports := range p.currentInstances {
+		// Check if the instance was found in a previous scan. If that is the case, add all ports exposed on this
+		// instance since they were not found on the last scan. Otherwise compare the ports opened on the previous scan
+		// with the current scan.
+		if p.previousInstances[host] == nil {
+			p.newInstancesExposed[host] = ports
+		} else {
+			p.checkPortsAdded(host)
+			p.checkPortsRemoved(host)
+		}
+	}
+
+	// Go through all of the instances of the previous scan and check if any were present in the last scan but not this
+	// one.
+	for host, ports := range p.previousInstances {
+		if p.currentInstances[host] == nil {
+			p.instancesRemoved[host] = ports
+		}
+	}
+	return p.newInstancesExposed, p.instancesRemoved
+}
+
+// checkPortsAdded goes through all ports found on the current scan and checks to see if they were present on the last
+// scan.
+func (p *scanParser) checkPortsAdded(host string) {
+	portsAdded := make(portMap)
+	for port, _ := range p.currentInstances[host] {
+		if p.previousInstances[host][port] == false {
+			portsAdded[port] = true
+		}
+	}
+	// Check if any ports were added or removed to the current instance.
+	if len(portsAdded) > 0 {
+		p.instancesRemoved[host] = portsAdded
+	}
+}
+
+// checkPortsRemoved goes through all of the opened ports on the last scan of the host and checks if they were closed on
+// the last scan.
+func (p *scanParser) checkPortsRemoved(host string) {
+	portsRemoved := make(portMap)
+	for port, _ := range p.previousInstances[host] {
+		if p.currentInstances[host][port] == false {
+			portsRemoved[port] = true
+		}
+	}
+	// Check if any ports were added or removed to the current instance.
+	if len(portsRemoved) > 0 {
+		p.instancesRemoved[host] = portsRemoved
+	}
+}
+
+type nmapStruct struct {
+	ctx               context.Context
+	cancel            context.CancelFunc
+	ipAddresses       []string
+	nmapClientSvc     wrapper.NmapClientWrapper
+	CurrentScan       []byte
+	currentInstances  map[string]portMap
+	previousInstances map[string]portMap
+	scanParser        *scanParser
+}
+
+func New(ipAddresses []string) (*nmapStruct, error) {
+	n := &nmapStruct{}
 	if ipAddresses == nil {
-		return n, fmt.Errorf("SetupNmap: Error Initializing nmapStruct interface. ipAddresses nil. ")
+		return n, fmt.Errorf("New: Error Initializing nmapStruct interface. ipAddresses nil. ")
 	}
 
 	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
 	n.ipAddresses = ipAddresses
+	n.currentInstances = make(map[string]portMap)
+	n.previousInstances = make(map[string]portMap)
+	n.scanParser = newParser(n.previousInstances, n.currentInstances)
 	return n, nil
 }
 
-func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]bool, error) {
-	instancesRemoved := make(map[string]map[uint16]bool)
+func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) error {
 	previousResult, err := nmap.Parse(scanBytes)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing buffer %s", err)
+		return fmt.Errorf("error parsing buffer %s", err)
 	}
 
 	for _, host := range previousResult.Hosts {
@@ -41,7 +118,7 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]
 			continue
 		}
 
-		hostMap := make(map[uint16]bool)
+		hostMap := make(portMap)
 
 		fmt.Printf("Host %q:\n", host.Addresses[0])
 
@@ -51,9 +128,9 @@ func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]
 				hostMap[port.ID] = true
 			}
 		}
-		instancesRemoved[host.Addresses[0].Addr] = hostMap
+		n.previousInstances[host.Addresses[0].Addr] = hostMap
 	}
-	return instancesRemoved, nil
+	return nil
 }
 
 func (n *nmapStruct) SetupScan() error {
@@ -70,19 +147,19 @@ func (n *nmapStruct) SetupScan() error {
 	return nil
 }
 
-func (n *nmapStruct) StartScan() (map[string]map[uint16]bool, error) {
-	newInstancesExposed := make(map[string]map[uint16]bool)
+func (n *nmapStruct) StartScan() error {
+	newInstancesExposed := make(map[string]portMap)
 	defer n.cancel()
 
 	if n.nmapClientSvc == nil {
-		return nil, fmt.Errorf("StartScan: nmapClientSvc is nil")
+		return fmt.Errorf("StartScan: nmapClientSvc is nil")
 	}
 
 	log.Debug("Starting Scan")
 	result, warnings, err := n.nmapClientSvc.Run()
 
 	if err != nil {
-		return nil, fmt.Errorf("StartScan: unable to run nmap scan: %s", err)
+		return fmt.Errorf("StartScan: unable to run nmap scan: %s", err)
 	}
 
 	if warnings != nil {
@@ -91,17 +168,17 @@ func (n *nmapStruct) StartScan() (map[string]map[uint16]bool, error) {
 
 	currentScan, err := ioutil.ReadAll(result.ToReader())
 	if err != nil {
-		return nil, fmt.Errorf("StartScan: Error reading previous scan %s", err)
+		return fmt.Errorf("StartScan: Error reading previous scan %s", err)
 	}
 
 	n.CurrentScan = currentScan
 
-	// Use the results to print an example output
+	// Add all ports that are open
 	for _, host := range result.Hosts {
 		if len(host.Ports) == 0 || len(host.Addresses) == 0 {
 			continue
 		}
-		hostEntry := make(map[uint16]bool)
+		hostEntry := make(portMap)
 
 		for _, port := range host.Ports {
 			if port.State.String() == "open" {
@@ -110,42 +187,17 @@ func (n *nmapStruct) StartScan() (map[string]map[uint16]bool, error) {
 		}
 		newInstancesExposed[host.Addresses[0].Addr] = hostEntry
 	}
-	return newInstancesExposed, nil
+	n.currentInstances = newInstancesExposed
+	return nil
 }
 
-//TODO: Find a different way. I don't like this.
-func (n *nmapStruct) DiffScans(instancesFromCurrentScan map[string]map[uint16]bool, instancesFromPreviousScan map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error) {
-	newInstancesExposed := make(map[string]map[uint16]bool)
-	instancesRemoved := make(map[string]map[uint16]bool)
-	for host, ports := range instancesFromCurrentScan {
-		if instancesFromPreviousScan[host] == nil {
-			newInstancesExposed[host] = ports
-		} else if instancesFromPreviousScan[host] != nil {
-			portsAdded := make(map[uint16]bool)
-			portsRemoved := make(map[uint16]bool)
-			for port, _ := range ports {
-				if instancesFromPreviousScan[host][port] == false {
-					portsAdded[port] = true
-				}
-			}
-			for port, _ := range instancesFromPreviousScan[host] {
-				if instancesFromCurrentScan[host][port] == false {
-					portsRemoved[port] = true
-				}
-			}
-			if len(portsAdded) > 0 {
-				instancesRemoved[host] = portsAdded
-			}
-			if len(portsRemoved) > 0 {
-				instancesRemoved[host] = portsRemoved
-			}
-		}
-	}
-
-	for host, ports := range instancesFromPreviousScan {
-		if instancesFromCurrentScan[host] == nil {
-			instancesRemoved[host] = ports
-		}
-	}
-	return newInstancesExposed, instancesRemoved, nil
+// DiffScans takes a map of instances from a past scan and a current one. The function returns instances with ports
+// that are were opened and closed. It does this by comparing the two maps that are passed to the function and iterating
+// through each.
+func (n *nmapStruct) DiffScans() (map[string]portMap, map[string]portMap) {
+	log.WithFields(log.Fields{
+		"previousInstanceCount": len(n.previousInstances),
+		"currentInstanceCount":  len(n.currentInstances),
+	}).Debug("Parsing Scan")
+	return n.scanParser.ParseScans()
 }

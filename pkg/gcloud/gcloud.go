@@ -16,10 +16,10 @@ type gCloudSvc struct {
 	computeService wrapper.GCloudWrapper
 }
 
-func Setup(config config.BaseConfig) (*gCloudSvc, error) {
+func New(config config.BaseConfig) (*gCloudSvc, error) {
 	gCloudWrapper, err := createGCloudInterface(config)
 	if err != nil {
-		return nil, fmt.Errorf("Setup: Error Creating gCloudSvc Interface %s", err)
+		return nil, fmt.Errorf("New: Error Creating gCloudSvc Interface %s", err)
 	}
 
 	g := gCloudSvc{}

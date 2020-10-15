@@ -29,7 +29,7 @@ func main() {
 		},
 	}
 
-	awsSvc, err := aws.SetupAWS(configObject)
+	awsSvc, err := aws.New(configObject)
 	if err != nil {
 		fmt.Errorf("Error configuring AWS %s", err)
 	}
@@ -39,7 +39,7 @@ func main() {
 		fmt.Errorf("unable to run get AWS Instances: %s", err)
 	}
 
-	gCloudSvc, err := gcloud.Setup(configObject)
+	gCloudSvc, err := gcloud.New(configObject)
 	if err != nil {
 		fmt.Errorf("Error Setting up gCloud interface %s", err)
 	}
@@ -56,7 +56,7 @@ func main() {
 		i += 1
 	}
 
-	nmapScanner, err := scanner.SetupNmap(ipAddresses)
+	nmapScanner, err := scanner.New(ipAddresses)
 	if err != nil {
 		fmt.Errorf("Error setting up nmapStruct interface: %s", err)
 	}
@@ -66,7 +66,7 @@ func main() {
 		fmt.Errorf("Error getting object %s", err)
 	}
 
-	oldInstances, err := nmapScanner.ParsePreviousScan(scanBytes)
+	err = nmapScanner.ParsePreviousScan(scanBytes)
 	if err != nil {
 		fmt.Errorf("unable to parse previous results in scanner")
 	}
@@ -76,22 +76,19 @@ func main() {
 		fmt.Errorf("Unable to setup nmap scanner")
 	}
 
-	newInstances, err := nmapScanner.StartScan()
+	err = nmapScanner.StartScan()
 	if err != nil {
 		fmt.Errorf("unable to run nmap scan: %s", err)
 	}
 
-	instancesExposed, instancesRemoved, err := nmapScanner.DiffScans(newInstances, oldInstances)
-	if err != nil {
-		fmt.Errorf("Error Diffing Scans %s", err)
-	}
+	instancesExposed, instancesRemoved := nmapScanner.DiffScans()
 
 	err = awsSvc.UploadObjectToS3(nmapScanner.CurrentScan, configObject.PreviousFileName)
 	if err != nil {
 		fmt.Errorf("Unable to upload object to S3")
 	}
 
-	slackSvc, err := slack.SetupSlack(configObject)
+	slackSvc, err := slack.New(configObject)
 	if err != nil {
 		fmt.Errorf("Unable to create slack Interface %s", err)
 	}

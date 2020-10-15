@@ -29,7 +29,7 @@ type slack struct {
 	slackUrl string
 }
 
-func SetupSlack(config config.BaseConfig) (*slack, error) {
+func New(config config.BaseConfig) (*slack, error) {
 	if config.SlackConfig == nil {
 		return nil, fmt.Errorf("Error: SlackConfig cannot be nil")
 	}

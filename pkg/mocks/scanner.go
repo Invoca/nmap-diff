@@ -20,6 +20,6 @@ func (g *ScannerMock) Run() (result *nmap.Run, warnings []string, err error) {
 	} else if args.Get(1) == nil {
 		return nil, []string{}, args.Error(1)
 	} else {
-		return args.Get(0).(*nmap.Run), args.Get(1).([]string),args.Error(2)
+		return args.Get(0).(*nmap.Run), args.Get(1).([]string), args.Error(2)
 	}
 }

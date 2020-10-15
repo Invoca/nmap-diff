@@ -15,6 +15,10 @@ import (
 	"io/ioutil"
 )
 
+const (
+	instanceRunningState = int64(16)
+)
+
 type awsSvc struct {
 	regions    []string
 	bucketName string
@@ -23,9 +27,9 @@ type awsSvc struct {
 	awsSession *session.Session
 }
 
-func SetupAWS(configObject config.BaseConfig) (*awsSvc, error) {
+func New(configObject config.BaseConfig) (*awsSvc, error) {
 	if configObject.BucketName == "" {
-		return nil, fmt.Errorf("SetupAWS: BucketName cannot be nil")
+		return nil, fmt.Errorf("New: BucketName cannot be nil")
 	}
 
 	a := awsSvc{}
@@ -81,7 +85,7 @@ func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[str
 		log.Debug("Reservation Id", *res.ReservationId, " Num Instances: ", len(res.Instances))
 		for _, inst := range res.Instances {
 			// Status code 16 is Runnning state
-			if *inst.State.Code == 16 {
+			if *inst.State.Code == instanceRunningState {
 				newInstance := server.Server{}
 				newInstance.Tags = make(map[string]string)
 				newInstance.Address = *inst.PublicIpAddress

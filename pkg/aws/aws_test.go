@@ -28,9 +28,9 @@ func TestGetAWSInstances(t *testing.T) {
 
 	mockEc2 := &mocks.MockEC2API{}
 	serversMap := make(map[string]server.Server)
+	instanceState := instanceRunningState
 
-	runningCode := int64(16)
-	runningState := ec2.InstanceState{Code: &runningCode}
+	runningState := ec2.InstanceState{Code: &instanceState}
 
 	resp := ec2.DescribeInstancesOutput{
 		Reservations: []*ec2.Reservation{
