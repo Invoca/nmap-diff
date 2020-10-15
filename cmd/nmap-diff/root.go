@@ -53,7 +53,6 @@ func NewRootCmd() *cobra.Command {
 	return cmd
 }
 
-
 type logConfig struct {
 	LogLevel string
 	LogType  string

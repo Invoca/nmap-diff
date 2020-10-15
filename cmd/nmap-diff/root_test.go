@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 type loggingPair struct {
 	loglevelFromFlag string
 	expectedLoglevel log.Level

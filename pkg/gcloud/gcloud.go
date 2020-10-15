@@ -14,7 +14,6 @@ import (
 
 type GCloudInterface interface {
 	Instances(serversMap map[string]server.Server) error
-
 }
 
 type gCloudSvc struct {
