@@ -15,7 +15,6 @@ import (
 	"io/ioutil"
 )
 
-<<<<<<< HEAD
 const (
 	instanceRunningState = int64(16)
 )
@@ -26,8 +25,6 @@ type AwsInterface interface {
 	GetFileFromS3(s3Key string) ([]byte, error)
 }
 
-=======
->>>>>>> 74163a4... Ran go fmt
 type awsSvc struct {
 	regions    []string
 	bucketName string
@@ -85,7 +82,7 @@ func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[str
 
 	ec2Instances, err := ec2Svc.DescribeInstances(nil)
 	if err != nil {
-		return fmt.Errorf("GetInstances: Error Describing Instances %s", err)
+		return fmt.Errorf("Instances: Error Describing Instances %s", err)
 	}
 
 	reservations := ec2Instances.Reservations
@@ -109,11 +106,10 @@ func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[str
 	return nil
 }
 
-func (a *awsSvc) GetInstances() (map[string]server.Server, error) {
+func (a *awsSvc) Instances(serversMap map[string]server.Server) error {
 	if a.awsSession == nil {
-		return nil, fmt.Errorf("GetInstances: awsSession Cannot be nil")
+		return fmt.Errorf("Instances: awsSession Cannot be nil")
 	}
-	serversMap := make(map[string]server.Server)
 
 	for _, region := range a.regions {
 		ec2Svc := ec2.New(a.awsSession, aws.NewConfig().WithRegion(region))
@@ -122,10 +118,10 @@ func (a *awsSvc) GetInstances() (map[string]server.Server, error) {
 			serversMap[k] = v
 		}
 		if err != nil {
-			return nil, fmt.Errorf("Error gettings instances in region %s", err)
+			return fmt.Errorf("Error gettings instances in region %s", err)
 		}
 	}
-	return serversMap, nil
+	return nil
 }
 
 func (a *awsSvc) UploadObjectToS3(fileData []byte, s3Key string) error {

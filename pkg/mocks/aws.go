@@ -63,12 +63,12 @@ func (m *MockS3API) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, er
 	}
 }
 
-func (m *MockAWSWrapper) GetInstances() (map[string]server.Server, error) {
+func (m *MockAWSWrapper) Instances(map[string]server.Server) error {
 	args := m.Called(nil)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return args.Error(0)
 	} else {
-		return args.Get(0).(map[string]server.Server), args.Error(1)
+		return args.Error(0)
 	}
 }
 

@@ -81,6 +81,20 @@ func (p *scanParser) checkPortsRemoved(host string) {
 	}
 }
 
+type nmapWrapper struct{}
+
+func (n *nmapWrapper) Run(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
+	scanner, err := nmap.NewScanner(
+		nmap.WithTargets(ipAddresses...),
+		nmap.WithContext(ctx),
+		nmap.WithSkipHostDiscovery(),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to create scanner scanner: %v", err)
+	}
+	return scanner.Run()
+}
+
 type NmapSvc interface {
 	ParsePreviousScan(scanBytes []byte) (map[string]map[uint16]bool, error)
 	SetupScan() error
@@ -107,15 +121,7 @@ func New(ipAddresses []string) (*nmapStruct, error) {
 	}
 	n.ipAddresses = ipAddresses
 	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
-	n.currentInstances = make(map[string]wrapper.PortMap)
-	n.previousInstances = make(map[string]wrapper.PortMap)
-	n.scanParser = newParser(n.previousInstances, n.currentInstances)
-	return n, nil
-}
-
-func SetupNmap() (*nmapStruct, error) {
-	n := &nmapStruct{}
-	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
+	n.nmapClientSvc = &nmapWrapper{}
 	n.currentInstances = make(map[string]wrapper.PortMap)
 	n.previousInstances = make(map[string]wrapper.PortMap)
 	n.scanParser = newParser(n.previousInstances, n.currentInstances)

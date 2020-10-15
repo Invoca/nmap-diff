@@ -6,15 +6,16 @@ import (
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/gcloud"
 	"github.com/port-scanner/pkg/scanner"
+	"github.com/port-scanner/pkg/server"
 	"github.com/port-scanner/pkg/slack"
 	"github.com/port-scanner/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 )
 
 type runner struct {
-	awsSvc    wrapper.AwsInterface
-	gCloudSvc wrapper.GCloudInterface
-	slackSvc  wrapper.SlackInterface
+	awsSvc    wrapper.AwsSvc
+	gCloudSvc wrapper.GCloudSvc
+	slackSvc  wrapper.SlackSvc
 	nmapSvc   wrapper.NmapSvc
 }
 
@@ -53,19 +54,14 @@ func setupRunner(configObject config.BaseConfig) (*runner, error) {
 		return nil, fmt.Errorf("setupRunner: error Setting up gCloud interface %s", err)
 	}
 
-	log.Debug("Setting up Nmap package")
-	r.nmapSvc, err = scanner.SetupNmap()
-	if err != nil {
-		return nil, fmt.Errorf("setupRunner: Error setting up nmapStruct interface: %s", err)
-	}
-
 	return r, nil
 }
 
 func (r *runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Fetching Instances From AWS")
-	serversMap, err := r.awsSvc.GetInstances()
+	serversMap := make(map[string]server.Server)
+	err := r.awsSvc.Instances(serversMap)
 	if err != nil {
 		return fmt.Errorf("Run: Unable to run get AWS Instances: %s", err)
 	}

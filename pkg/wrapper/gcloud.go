@@ -10,6 +10,6 @@ type GCloudWrapper interface {
 	InstancesInRegion(region string) ([]compute.Instance, error)
 }
 
-type GCloudInterface interface {
+type GCloudSvc interface {
 	Instances(serversMap map[string]server.Server) error
 }
