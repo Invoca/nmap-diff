@@ -1,17 +1,17 @@
 package main
 
 import (
-"bytes"
-"encoding/json"
-"fmt"
-"github.com/port-scanner/pkg/mocks"
-log "github.com/sirupsen/logrus"
-"github.com/stretchr/testify/assert"
-"github.com/stretchr/testify/mock"
-"net/http"
-"net/http/httptest"
-"strconv"
-"testing"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/port-scanner/pkg/mocks"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
 )
 
 type scanHandlerTestCase struct {
