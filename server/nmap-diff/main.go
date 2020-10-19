@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/port-scanner/pkg/runner"
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
@@ -25,7 +26,8 @@ type server struct {
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-	s := server{}
+
+	s := server{runner: &runner.Runner{}}
 
 	log.Debug("starting server...")
 	http.HandleFunc("/", s.scanHandler)
