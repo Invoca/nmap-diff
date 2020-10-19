@@ -37,12 +37,7 @@ func TestParsePreviousScan(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	log.Debug("Starting TestParsePreviousScan")
 
-	ipAddresses := []string{
-		"1.1.1.1",
-		"2.2.2.2",
-	}
-
-	nmapInterface, _ := New(ipAddresses)
+	nmapInterface := New()
 
 	testCases := []scannerParseTestCase{
 		{
@@ -108,7 +103,7 @@ func TestNmapDiffScans(t *testing.T) {
 	newInstancesExposed := make(map[string]wrapper.PortMap)
 	instancesClosed := make(map[string]wrapper.PortMap)
 
-	n, _ := New([]string{})
+	n := New()
 
 	testCases := []scannerDiffTestCase{
 		{
@@ -221,8 +216,12 @@ func TestNmapDiffScans(t *testing.T) {
 
 func TestRunNmapScan(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
+	ipAddresses := []string{
+		"1.1.1.1",
+		"2.2.2.2",
+	}
 	serviceMock := mocks.ScannerMock{}
-	n, _ := New([]string{"1.1.1.1", "2.2.2.2"})
+	n := New()
 	n.nmapClientSvc = &serviceMock
 
 	result := nmap.Run{Hosts: []nmap.Host{
@@ -286,7 +285,7 @@ func TestRunNmapScan(t *testing.T) {
 		}).Debug("Starting testCase " + strconv.Itoa(index))
 
 		testCase.setup()
-		err := n.StartScan()
+		err := n.StartScan(ipAddresses)
 		if testCase.shouldError {
 			assert.Error(t, err)
 		} else {
@@ -295,21 +294,4 @@ func TestRunNmapScan(t *testing.T) {
 
 	}
 
-}
-
-func TestSetupNmap(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-	var emptyInstances []string
-	listOfInstances := []string{
-		"1.1.1.1",
-		"2.2.2.2",
-	}
-
-	log.Debug("Setting up nmapStruct Object with no instances")
-	_, err := New(emptyInstances)
-	assert.Error(t, err)
-
-	log.Debug("Setting up nmapStruct Object with list of instances")
-	_, err = New(listOfInstances)
-	assert.NoError(t, err)
 }

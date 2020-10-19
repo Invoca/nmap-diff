@@ -28,8 +28,8 @@ func NewRootCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Setting up runner")
-
-			err := runner.Execute(baseConfig)
+			r := runner.Runner{}
+			err := r.Execute(baseConfig)
 			if err != nil {
 				return fmt.Errorf("RunE: Error seting up runner %s", err)
 			}

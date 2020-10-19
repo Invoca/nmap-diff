@@ -106,7 +106,6 @@ type NmapSvc interface {
 type nmapStruct struct {
 	ctx               context.Context
 	cancel            context.CancelFunc
-	ipAddresses       []string
 	nmapClientSvc     wrapper.NmapClientWrapper
 	currentInstances  map[string]wrapper.PortMap
 	previousInstances map[string]wrapper.PortMap
@@ -114,18 +113,14 @@ type nmapStruct struct {
 	currentScanSlice  []byte
 }
 
-func New(ipAddresses []string) (*nmapStruct, error) {
+func New() *nmapStruct {
 	n := &nmapStruct{}
-	if ipAddresses == nil {
-		return n, fmt.Errorf("New: Error Initializing nmapStruct interface. ipAddresses nil. ")
-	}
-	n.ipAddresses = ipAddresses
 	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
 	n.nmapClientSvc = &nmapWrapper{}
 	n.currentInstances = make(map[string]wrapper.PortMap)
 	n.previousInstances = make(map[string]wrapper.PortMap)
 	n.scanParser = newParser(n.previousInstances, n.currentInstances)
-	return n, nil
+	return n
 }
 
 func (n *nmapStruct) ParsePreviousScan(scanBytes []byte) error {
@@ -161,7 +156,7 @@ func (n *nmapStruct) CurrentScanResults() ([]byte, error) {
 	return n.currentScanSlice, nil
 }
 
-func (n *nmapStruct) StartScan() error {
+func (n *nmapStruct) StartScan(ipAddresses []string) error {
 	newInstancesExposed := make(map[string]wrapper.PortMap)
 	defer n.cancel()
 
@@ -170,7 +165,7 @@ func (n *nmapStruct) StartScan() error {
 	}
 
 	log.Debug("Starting Scan")
-	result, warnings, err := n.nmapClientSvc.Run(n.ipAddresses, n.ctx)
+	result, warnings, err := n.nmapClientSvc.Run(ipAddresses, n.ctx)
 
 	if err != nil {
 		return fmt.Errorf("StartScan: unable to run nmap scan: %s", err)

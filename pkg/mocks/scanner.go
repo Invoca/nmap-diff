@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Ullaakut/nmap"
 	"github.com/port-scanner/pkg/wrapper"
+	log "github.com/sirupsen/logrus"
 )
 
 type ScannerServiceMock interface {
@@ -34,22 +35,16 @@ func (n *NmapScannerMock) CurrentScanResults() ([]byte, error) {
 	return args.Get(0).([]byte), args.Error(1)
 }
 
-func (n *NmapScannerMock) ParsePreviousScan([]byte) (error) {
+func (n *NmapScannerMock) ParsePreviousScan(scanBytes []byte) error {
+	log.Debug("ParsePreviousScan Called")
 	args := n.Called(nil)
-	if args.Get(0) == nil {
-		return nil
-	} else {
-		return args.Error(0)
-	}
+	return args.Error(0)
 }
 
-func (n *NmapScannerMock) StartScan() error {
+func (n *NmapScannerMock) StartScan(ipAddresses []string) error {
+	log.Debug("StartScan Called")
 	args := n.Called(nil)
-	if args.Get(0) == nil {
-		return nil
-	} else {
-		return args.Error(0)
-	}
+	return args.Error(0)
 }
 
 func (n *NmapScannerMock) DiffScans() (map[string]wrapper.PortMap, map[string]wrapper.PortMap) {

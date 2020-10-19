@@ -13,7 +13,7 @@ type NmapClientWrapper interface {
 type NmapSvc interface {
 	CurrentScanResults() ([]byte, error)
 	ParsePreviousScan([]byte) error
-	StartScan() error
+	StartScan(ipAddresses []string) error
 	DiffScans() (map[string]PortMap, map[string]PortMap)
 }
 

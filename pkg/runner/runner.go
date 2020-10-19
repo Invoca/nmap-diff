@@ -13,14 +13,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type runner struct {
+type Runner struct {
 	awsSvc    wrapper.AwsSvc
 	gCloudSvc wrapper.GCloudSvc
 	slackSvc  wrapper.SlackSvc
 	nmapSvc   wrapper.NmapSvc
 }
 
-func Execute(configObject config.BaseConfig) error {
+func (r *Runner) Execute(configObject config.BaseConfig) error {
 	r, err := newRunner(configObject)
 	if err != nil {
 		return fmt.Errorf("Execute: Error setting up Runner %s", err)
@@ -32,10 +32,10 @@ func Execute(configObject config.BaseConfig) error {
 	return nil
 }
 
-func newRunner(configObject config.BaseConfig) (*runner, error) {
+func newRunner(configObject config.BaseConfig) (*Runner, error) {
 	var err error
 
-	r := &runner{}
+	r := &Runner{}
 	log.Debug("Configuring AWS package")
 
 	r.awsSvc, err = aws.New(configObject)
@@ -54,10 +54,12 @@ func newRunner(configObject config.BaseConfig) (*runner, error) {
 	if err != nil {
 		return nil, fmt.Errorf("newRunner: error Setting up gCloud interface %s", err)
 	}
+
+	r.nmapSvc = scanner.New()
 	return r, nil
 }
 
-func (r *runner) run(configObject config.BaseConfig) error {
+func (r *Runner) run(configObject config.BaseConfig) error {
 
 	log.Debug("Fetching Instances From AWS")
 	serversMap := make(map[string]server.Server)
@@ -80,12 +82,6 @@ func (r *runner) run(configObject config.BaseConfig) error {
 		i += 1
 	}
 
-	log.Debug("Setting up Nmap package")
-	nmapScanner, err := scanner.New(ipAddresses)
-	if err != nil {
-		return fmt.Errorf("Run: Error setting up nmapStruct interface: %s", err)
-	}
-
 	log.Debug("Fetching previous scan from S3")
 	scanBytes, err := r.awsSvc.GetFileFromS3(configObject.PreviousFileName)
 	if err != nil {
@@ -93,24 +89,20 @@ func (r *runner) run(configObject config.BaseConfig) error {
 	}
 
 	log.Debug("Parsing results of previous scan")
-	err = nmapScanner.ParsePreviousScan(scanBytes)
+	err = r.nmapSvc.ParsePreviousScan(scanBytes)
 	if err != nil {
 		return fmt.Errorf("Run: Unable to parse previous results in scanner %s", err)
 	}
 
 	log.Debug("Starting Scan")
-	err = nmapScanner.StartScan()
+	err = r.nmapSvc.StartScan(ipAddresses)
 
 	if err != nil {
 		return fmt.Errorf("Run: Unable to run nmap scan: %s", err)
 	}
 
 	log.Debug("Analyzing the result of current scan and previous scan")
-	instancesExposed, instancesRemoved := nmapScanner.DiffScans()
-
-	if err != nil {
-		return fmt.Errorf("Run: Error Diffing Scans %s", err)
-	}
+	instancesExposed, instancesRemoved := r.nmapSvc.DiffScans()
 
 	currentScanSlice, err := r.nmapSvc.CurrentScanResults()
 	if err != nil {

@@ -86,6 +86,6 @@ func (m *MockAWSWrapper) GetFileFromS3(s3Key string) ([]byte, error) {
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	} else {
-		return args.Get(0).([]byte), args.Error(0)
+		return args.Get(0).([]byte), args.Error(1)
 	}
 }
