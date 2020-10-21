@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Ullaakut/nmap"
-	"github.com/port-scanner/pkg/wrapper"
+	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 )
 

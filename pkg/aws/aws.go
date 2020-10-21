@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/port-scanner/pkg/config"
-	"github.com/port-scanner/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -3,13 +3,13 @@ package runner
 import (
 	"fmt"
 
-	"github.com/port-scanner/pkg/aws"
-	"github.com/port-scanner/pkg/config"
-	"github.com/port-scanner/pkg/gcloud"
-	"github.com/port-scanner/pkg/scanner"
-	"github.com/port-scanner/pkg/server"
-	"github.com/port-scanner/pkg/slack"
-	"github.com/port-scanner/pkg/wrapper"
+	"github.com/Invoca/nmap-diff/pkg/aws"
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/gcloud"
+	"github.com/Invoca/nmap-diff/pkg/scanner"
+	"github.com/Invoca/nmap-diff/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/slack"
+	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 )
 

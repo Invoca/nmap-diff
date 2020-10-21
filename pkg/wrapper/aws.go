@@ -1,6 +1,6 @@
 package wrapper
 
-import "github.com/port-scanner/pkg/server"
+import "github.com/Invoca/nmap-diff/pkg/server"
 
 type AwsSvc interface {
 	Instances(map[string]server.Server) error

@@ -1,6 +1,6 @@
 package mocks
 
-import "github.com/port-scanner/pkg/server"
+import "github.com/Invoca/nmap-diff/pkg/server"
 
 type SlackInterfaceMock struct {
 	ResettableMock

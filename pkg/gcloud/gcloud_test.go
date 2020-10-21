@@ -2,8 +2,8 @@ package gcloud
 
 import (
 	"fmt"
-	"github.com/port-scanner/pkg/mocks"
-	"github.com/port-scanner/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/mocks"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

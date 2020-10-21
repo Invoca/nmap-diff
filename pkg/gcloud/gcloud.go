@@ -3,9 +3,9 @@ package gcloud
 import (
 	"context"
 	"fmt"
-	"github.com/port-scanner/pkg/config"
-	"github.com/port-scanner/pkg/server"
-	"github.com/port-scanner/pkg/wrapper"
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
