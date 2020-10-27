@@ -3,6 +3,8 @@ package aws
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -12,18 +14,11 @@ import (
 	"github.com/port-scanner/pkg/config"
 	"github.com/port-scanner/pkg/server"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 )
 
 const (
 	instanceRunningState = int64(16)
 )
-
-type AwsInterface interface {
-	GetInstances() (map[string]server.Server, error)
-	UploadObjectToS3(fileData []byte, s3Key string) error
-	GetFileFromS3(s3Key string) ([]byte, error)
-}
 
 type awsSvc struct {
 	regions    []string

@@ -5,7 +5,6 @@ type BaseConfig struct {
 	BucketName       string
 	PreviousFileName string
 	IncludeGCloud    bool
-	HighSeverity     bool
 	GCloudConfig     *GCloudConfig
 	SlackConfig      *SlackConfig
 }
