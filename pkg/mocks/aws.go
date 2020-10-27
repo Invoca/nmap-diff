@@ -6,7 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/port-scanner/pkg/server"
 )
+
+type MockAWSWrapper struct {
+	ResettableMock
+}
 
 type MockEC2API struct {
 	ec2iface.EC2API
@@ -55,5 +60,32 @@ func (m *MockS3API) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, er
 		return nil, args.Error(1)
 	} else {
 		return args.Get(0).(*s3.GetObjectOutput), args.Error(1)
+	}
+}
+
+func (m *MockAWSWrapper) Instances(map[string]server.Server) error {
+	args := m.Called(nil)
+	if args.Get(0) == nil {
+		return args.Error(0)
+	} else {
+		return args.Error(0)
+	}
+}
+
+func (m *MockAWSWrapper) UploadObjectToS3(fileData []byte, s3Key string) error {
+	args := m.Called(nil)
+	if args.Get(0) == nil {
+		return args.Error(0)
+	} else {
+		return args.Error(0)
+	}
+}
+
+func (m *MockAWSWrapper) GetFileFromS3(s3Key string) ([]byte, error) {
+	args := m.Called(nil)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	} else {
+		return args.Get(0).([]byte), args.Error(1)
 	}
 }

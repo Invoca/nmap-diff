@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"fmt"
+	"github.com/port-scanner/pkg/server"
 	"github.com/port-scanner/pkg/wrapper"
 	"google.golang.org/api/compute/v1"
 )
@@ -31,5 +32,18 @@ func (g *GCloudMock) InstancesInRegion(region string) ([]compute.Instance, error
 		return nil, args.Error(1)
 	} else {
 		return args.Get(0).([]compute.Instance), args.Error(1)
+	}
+}
+
+type GCloudInterfaceMock struct {
+	ResettableMock
+}
+
+func (g *GCloudInterfaceMock) Instances(serversMap map[string]server.Server) error {
+	args := g.Called(nil)
+	if args.Get(0) == nil {
+		return args.Error(0)
+	} else {
+		return args.Get(0).(error)
 	}
 }
