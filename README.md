@@ -32,3 +32,7 @@ To trigger a nmap run from the commandline image, add arguments to the docker ru
 docker run quay.io/invoca/nmap-diff:cmd ./nmap-diff --gcloud-project $PROJECTNAME --s3-bucket $BUCKETNAME -u $SLACK_URL --report-path=$REPORT_PATH --include-aws=$BOOL --include-gcloud=$BOOL
 ```
 
+
+## Contributions
+
+Contributions to this project are always welcome!  Please read our [Contribution Guidelines](https://github.com/Invoca/nmap-diff/blob/master/CONTRIBUTING.md) before starting any work.
