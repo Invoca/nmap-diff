@@ -32,6 +32,8 @@ func TestRun(t *testing.T) {
 		gCloudSvc: &gcloudMock,
 		slackSvc:  &slackMock,
 		nmapSvc:   &nmapMock,
+		enableGCloud: true,
+		enableAWS: true,
 	}
 
 	testCases := []runnerTestCase{
