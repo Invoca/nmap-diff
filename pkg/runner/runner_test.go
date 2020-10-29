@@ -28,12 +28,12 @@ func TestRun(t *testing.T) {
 	slackMock := mocks.SlackInterfaceMock{}
 
 	testRunner := Runner{
-		awsSvc:    &awsMock,
-		gCloudSvc: &gcloudMock,
-		slackSvc:  &slackMock,
-		nmapSvc:   &nmapMock,
+		awsSvc:       &awsMock,
+		gCloudSvc:    &gcloudMock,
+		slackSvc:     &slackMock,
+		nmapSvc:      &nmapMock,
 		enableGCloud: true,
-		enableAWS: true,
+		enableAWS:    true,
 	}
 
 	testCases := []runnerTestCase{
