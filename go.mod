@@ -1,4 +1,4 @@
-module github.com/port-scanner
+module github.com/Invoca/nmap-diff
 
 go 1.14
 

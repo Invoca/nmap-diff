@@ -1,7 +1,7 @@
 package wrapper
 
 import (
-	"github.com/port-scanner/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	"google.golang.org/api/compute/v1"
 )
 

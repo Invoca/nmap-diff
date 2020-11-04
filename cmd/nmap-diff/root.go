@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/port-scanner/pkg/config"
-	"github.com/port-scanner/pkg/runner"
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/runner"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

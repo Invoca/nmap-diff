@@ -3,21 +3,23 @@ package runner
 import (
 	"fmt"
 
-	"github.com/port-scanner/pkg/aws"
-	"github.com/port-scanner/pkg/config"
-	"github.com/port-scanner/pkg/gcloud"
-	"github.com/port-scanner/pkg/scanner"
-	"github.com/port-scanner/pkg/server"
-	"github.com/port-scanner/pkg/slack"
-	"github.com/port-scanner/pkg/wrapper"
+	"github.com/Invoca/nmap-diff/pkg/aws"
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/gcloud"
+	"github.com/Invoca/nmap-diff/pkg/scanner"
+	"github.com/Invoca/nmap-diff/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/slack"
+	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 )
 
 type Runner struct {
-	awsSvc    wrapper.AwsSvc
-	gCloudSvc wrapper.GCloudSvc
-	slackSvc  wrapper.SlackSvc
-	nmapSvc   wrapper.NmapSvc
+	awsSvc       wrapper.AwsSvc
+	gCloudSvc    wrapper.GCloudSvc
+	slackSvc     wrapper.SlackSvc
+	nmapSvc      wrapper.NmapSvc
+	enableAWS    bool
+	enableGCloud bool
 }
 
 func (r *Runner) Execute(configObject config.BaseConfig) error {
@@ -36,11 +38,15 @@ func newRunner(configObject config.BaseConfig) (*Runner, error) {
 	var err error
 
 	r := &Runner{}
+	r.enableAWS = configObject.IncludeAWS
+	r.enableGCloud = configObject.IncludeGCloud
 	log.Debug("Configuring AWS package")
 
-	r.awsSvc, err = aws.New(configObject)
-	if err != nil {
-		return nil, fmt.Errorf("newRunner: error configuring AWS %s", err)
+	if r.enableAWS {
+		r.awsSvc, err = aws.New(configObject)
+		if err != nil {
+			return nil, fmt.Errorf("newRunner: error configuring AWS %s", err)
+		}
 	}
 
 	log.Debug("Configuring slack package")
@@ -49,10 +55,12 @@ func newRunner(configObject config.BaseConfig) (*Runner, error) {
 		return nil, fmt.Errorf("newRunner: Unable to create slack Interface %s", err)
 	}
 
-	log.Debug("Configuring gcloud package")
-	r.gCloudSvc, err = gcloud.New(configObject)
-	if err != nil {
-		return nil, fmt.Errorf("newRunner: error Setting up gCloud interface %s", err)
+	if r.enableGCloud {
+		log.Debug("Configuring gcloud package")
+		r.gCloudSvc, err = gcloud.New(configObject)
+		if err != nil {
+			return nil, fmt.Errorf("newRunner: error Setting up gCloud interface %s", err)
+		}
 	}
 
 	r.nmapSvc = scanner.New()
@@ -60,18 +68,23 @@ func newRunner(configObject config.BaseConfig) (*Runner, error) {
 }
 
 func (r *Runner) run(configObject config.BaseConfig) error {
-
-	log.Debug("Fetching Instances From AWS")
+	var err error
 	serversMap := make(map[string]server.Server)
-	err := r.awsSvc.Instances(serversMap)
-	if err != nil {
-		return fmt.Errorf("Run: Unable to run get AWS Instances: %s", err)
+
+	if r.enableAWS {
+		log.Debug("Fetching Instances From AWS")
+		err = r.awsSvc.Instances(serversMap)
+		if err != nil {
+			return fmt.Errorf("Run: Unable to run get AWS Instances: %s", err)
+		}
 	}
 
-	log.Debug("Fetching Instances From GCloud")
-	err = r.gCloudSvc.Instances(serversMap)
-	if err != nil {
-		return fmt.Errorf("Run: Unable to run get Google Cloud Instances: %s", err)
+	if r.enableGCloud {
+		log.Debug("Fetching Instances From GCloud")
+		err = r.gCloudSvc.Instances(serversMap)
+		if err != nil {
+			return fmt.Errorf("Run: Unable to run get Google Cloud Instances: %s", err)
+		}
 	}
 
 	log.Debug("Parsing servers map to slice")

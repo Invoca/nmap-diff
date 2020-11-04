@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/port-scanner/pkg/config"
-	"github.com/port-scanner/pkg/runner"
-	"github.com/port-scanner/pkg/wrapper"
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/runner"
+	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"

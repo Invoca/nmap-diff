@@ -1,7 +1,7 @@
 package slack
 
 import (
-	"github.com/port-scanner/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"

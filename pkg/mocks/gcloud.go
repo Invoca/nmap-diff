@@ -2,8 +2,8 @@ package mocks
 
 import (
 	"fmt"
-	"github.com/port-scanner/pkg/server"
-	"github.com/port-scanner/pkg/wrapper"
+	"github.com/Invoca/nmap-diff/pkg/server"
+	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	"google.golang.org/api/compute/v1"
 )
 
