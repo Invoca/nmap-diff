@@ -2,13 +2,16 @@ package slack
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/time/rate"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type SlackInterface interface {
@@ -32,6 +35,26 @@ type slackBody struct {
 
 type slack struct {
 	slackUrl string
+	rateLimit *rlHTTPClient
+}
+
+//Rate Limited wrapper
+type rlHTTPClient struct {
+	client      *http.Client
+	rlClient *rate.Limiter
+}
+
+func (c *rlHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	ctx := context.Background()
+	err := c.rlClient.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func New(config config.BaseConfig) (*slack, error) {
@@ -45,6 +68,11 @@ func New(config config.BaseConfig) (*slack, error) {
 
 	s := slack{}
 	s.slackUrl = config.SlackConfig.SlackURL
+	s.rateLimit = &rlHTTPClient{
+		client:      http.DefaultClient,
+		rlClient:  rate.NewLimiter(rate.Every(10*time.Second), 10),
+	}
+
 	return &s, nil
 }
 
@@ -83,7 +111,9 @@ func (s *slack) createBlockSlackPost(text string, additionalText string) error {
 
 	log.Debug(string(data))
 
-	resp, err := http.Post(s.slackUrl, "application/json", bytes.NewBuffer(data))
+	req, _ := http.NewRequest("POST", s.slackUrl, bytes.NewBuffer(data))
+	resp, err := s.rateLimit.Do(req)
+
 	if err != nil {
 		return fmt.Errorf("createBlockSlackPost: Error Posting Request %s", err)
 	}

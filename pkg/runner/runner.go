@@ -42,11 +42,9 @@ func newRunner(configObject config.BaseConfig) (*Runner, error) {
 	r.enableGCloud = configObject.IncludeGCloud
 	log.Debug("Configuring AWS package")
 
-	if r.enableAWS {
-		r.awsSvc, err = aws.New(configObject)
-		if err != nil {
-			return nil, fmt.Errorf("newRunner: error configuring AWS %s", err)
-		}
+	r.awsSvc, err = aws.New(configObject)
+	if err != nil {
+		return nil, fmt.Errorf("newRunner: error configuring AWS %s", err)
 	}
 
 	log.Debug("Configuring slack package")

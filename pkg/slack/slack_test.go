@@ -4,10 +4,12 @@ import (
 	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/time/rate"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 )
 
 type slackTestCase struct {
@@ -20,6 +22,11 @@ func TestPrintClosedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	slackInterface := slack{}
+	slackInterface.rateLimit = &rlHTTPClient{
+		client:      http.DefaultClient,
+		rlClient:  rate.NewLimiter(rate.Every(10*time.Second), 10),
+	}
+
 	serverTag := make(map[string]string)
 	serverTag["tagName"] = "tagValue"
 
@@ -73,6 +80,11 @@ func TestPrintOpenedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	slackInterface := slack{}
+	slackInterface.rateLimit = &rlHTTPClient{
+		client:      http.DefaultClient,
+		rlClient:  rate.NewLimiter(rate.Every(10*time.Second), 10),
+	}
+	
 	serverTag := make(map[string]string)
 	serverTag["tagName"] = "tagValue"
 

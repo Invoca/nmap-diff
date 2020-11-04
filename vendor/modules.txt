@@ -137,6 +137,7 @@ golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 # golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 ## explicit
+golang.org/x/time/rate
 # google.golang.org/api v0.31.0
 ## explicit
 google.golang.org/api/compute/v1
