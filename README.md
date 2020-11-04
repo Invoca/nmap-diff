@@ -1,7 +1,7 @@
 # nmap-diff
 
 ## How It Works
-The scanner works by pulling the previous scan from an S3 bucket. The previous scan is the xml output of an nmap scan. The scanner then runs a new scan and a diff is made between the current scan and previous scan. Any ports that were opened on the previous scan and closed on the current scan will be posted to slack as a closed port. If there is a port that is open on the new scan and closed on the previous scan, it will be posted to slack as an opened port. Anything else will not be posted to slack. Once that is done, the current scan will be uploaded to S3 where the previous scan was located. On the next scan run, the cycle repeats.
+nmap-diff works by pulling the previous run from an S3 bucket as a starting point. The previous run is the xml output of an nmap scan. nmap-diff then starts a new scan and a diff is made between the current run and the previous run. Only newly closed and opened ports will be posted to Slack. After posting to Slack, the current nmap scan result will be uploaded to S3 replacing the previous one.
 
 ## Setup
 There are two ways to run the nmap server as an http server and from the command line. The http server requires the AWS 
