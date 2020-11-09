@@ -8,8 +8,8 @@ import (
 
 	"github.com/Invoca/nmap-diff/pkg/wrapper"
 
-	"github.com/Ullaakut/nmap"
 	"github.com/Invoca/nmap-diff/pkg/mocks"
+	"github.com/Ullaakut/nmap"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

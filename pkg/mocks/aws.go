@@ -2,11 +2,11 @@ package mocks
 
 import (
 	"fmt"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/Invoca/nmap-diff/pkg/server"
 )
 
 type MockAWSWrapper struct {

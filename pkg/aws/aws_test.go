@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"github.com/Invoca/nmap-diff/pkg/mocks"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/Invoca/nmap-diff/pkg/mocks"
-	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
