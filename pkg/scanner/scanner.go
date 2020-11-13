@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/Invoca/nmap-diff/pkg/wrapper"
@@ -81,13 +82,37 @@ func (p *scanParser) checkPortsRemoved(host string) {
 	}
 }
 
-type nmapWrapper struct{}
+type nmapWrapper struct {
+	interfaceName string
+}
 
 func (n *nmapWrapper) Run(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
+	if n.interfaceName != "" {
+		return n.runWithDevice(ipAddresses, ctx)
+	}
+	return n.runWithoutDevice(ipAddresses, ctx)
+}
+
+func (n *nmapWrapper) runWithDevice(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
 	scanner, err := nmap.NewScanner(
 		nmap.WithTargets(ipAddresses...),
 		nmap.WithContext(ctx),
 		nmap.WithSkipHostDiscovery(),
+		nmap.WithInterface(n.interfaceName),
+		nmap.WithUnprivileged(),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to create scanner scanner: %v", err)
+	}
+	return scanner.Run()
+}
+
+func (n *nmapWrapper) runWithoutDevice(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
+	scanner, err := nmap.NewScanner(
+		nmap.WithTargets(ipAddresses...),
+		nmap.WithContext(ctx),
+		nmap.WithSkipHostDiscovery(),
+		nmap.WithUnprivileged(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create scanner scanner: %v", err)
@@ -116,7 +141,9 @@ type nmapStruct struct {
 func New() *nmapStruct {
 	n := &nmapStruct{}
 	n.ctx, n.cancel = context.WithTimeout(context.Background(), 5*time.Hour)
-	n.nmapClientSvc = &nmapWrapper{}
+	n.nmapClientSvc = &nmapWrapper{
+		interfaceName: os.Getenv("NMAP_DEVICE"),
+	}
 	n.currentInstances = make(map[string]wrapper.PortMap)
 	n.previousInstances = make(map[string]wrapper.PortMap)
 	n.scanParser = newParser(n.previousInstances, n.currentInstances)
@@ -167,12 +194,12 @@ func (n *nmapStruct) StartScan(ipAddresses []string) error {
 	log.Debug("Starting Scan")
 	result, warnings, err := n.nmapClientSvc.Run(ipAddresses, n.ctx)
 
-	if err != nil {
-		return fmt.Errorf("StartScan: unable to run nmap scan: %s", err)
-	}
-
 	if warnings != nil {
 		log.Warn("Warnings: \n", warnings)
+	}
+
+	if err != nil {
+		return fmt.Errorf("StartScan: unable to run nmap scan: %s", err)
 	}
 
 	currentScan, err := ioutil.ReadAll(result.ToReader())

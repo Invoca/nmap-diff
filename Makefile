@@ -3,9 +3,9 @@
 PKG=github.com/invoca/nmap-diff
 
 test:
-	go1.14 fmt ./pkg/... ./cmd/...
-	go1.14 vet ./pkg/... ./cmd/...
-	go1.14 test ./pkg/... ./cmd/... --race $(PKG) -v
+	go fmt ./pkg/... ./cmd/...
+	go vet ./pkg/... ./cmd/...
+	go test ./pkg/... ./cmd/... --race $(PKG) -v
 
 build-and-push-image:
 	@echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin quay.io
@@ -20,8 +20,7 @@ build-and-push-image:
 	source /home/travis/google-cloud-sdk/path.bash.inc
 	echo "$(GOOGLE_SERVICE_ACCOUNT_DATA)" | base64 -d > $(GOOGLE_APPLICATION_CREDENTIALS)
 	gcloud version
-	#echo $(GCLOUD_KEY) | base64 --decode > gcloud.p12
-	gcloud auth activate-service-account $(GCLOUD_EMAIL)
-	#ssh-keygen -f ~/.ssh/google_compute_engine -N ""
+	gcloud auth activate-service-account
+	gcloud auth configure-docker $(CLOUDSDK_CORE_PROJECT)
 	echo "Pushing images to GCR"
-	gcloud docker push gcr.io/$(CLOUDSDK_CORE_PROJECT)/nmap-diff:server-$(TAG)
+	docker push gcr.io/$(CLOUDSDK_CORE_PROJECT)/nmap-diff:server-$(TAG)
