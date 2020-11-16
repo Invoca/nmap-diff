@@ -14,6 +14,6 @@ FROM debian:latest
 
 COPY --from=build /nmap-diff /
 
-RUN apt-get update && apt-get install nmap net-tools strace traceroute -y && apt-get install -y --no-install-recommends ca-certificates
+RUN apt-get update && apt-get install nmap -y && apt-get install -y --no-install-recommends ca-certificates
 
 ENTRYPOINT ["/nmap-diff"]
