@@ -3,7 +3,9 @@ package aws
 import (
 	"bytes"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"io/ioutil"
+	"os"
 
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
@@ -40,8 +42,14 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 	}))
 
 	a.awsSession = sess
+	roleArnName := os.Getenv("EC2_ROLE_ARN")
+	if roleArnName != "" {
+		creds := stscreds.NewCredentials(sess, roleArnName)
 
-	a.ec2svc = ec2.New(sess)
+		a.ec2svc = ec2.New(sess, &aws.Config{Credentials: creds})
+	} else {
+		a.ec2svc = ec2.New(sess)
+	}
 
 	a.bucketName = configObject.BucketName
 	a.s3svc = s3.New(sess)
