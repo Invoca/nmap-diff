@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/Invoca/nmap-diff/pkg/config"
+	"github.com/Invoca/nmap-diff/pkg/server"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/Invoca/nmap-diff/pkg/config"
-	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 )
 

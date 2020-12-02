@@ -2,8 +2,8 @@ package mocks
 
 import (
 	"context"
-	"github.com/Ullaakut/nmap"
 	"github.com/Invoca/nmap-diff/pkg/wrapper"
+	"github.com/Ullaakut/nmap"
 	log "github.com/sirupsen/logrus"
 )
 

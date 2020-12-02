@@ -1,0 +1,35 @@
+name: Publish Docker Releases
+
+on:
+  push:
+    branches: [master, "release/*"]  # include release branches like release/1.0.x
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.14
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo $GITHUB_REF | cut -d'/' -f 3)"
+        id: extract_branch
+      - name: Setup Google Cloud key file
+        shell: bash
+        run: echo "$GOOGLE_SERVICE_ACCOUNT_DATA" > /tmp/key_file.json
+        env:
+          GOOGLE_SERVICE_ACCOUNT_DATA: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_DATA }}
+      - name: Build And Push
+        run: make build-and-push-image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          CLOUDSDK_CORE_PROJECT: nmap-diff-3
+          BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}

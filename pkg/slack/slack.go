@@ -34,12 +34,12 @@ type slackBody struct {
 }
 
 type slack struct {
-	slackUrl string
+	slackUrl  string
 	rateLimit *rateLimitedHTTPClient
 }
 
 type rateLimitedHTTPClient struct {
-	client      *http.Client
+	client   *http.Client
 	rlClient *rate.Limiter
 }
 
@@ -68,8 +68,8 @@ func New(config config.BaseConfig) (*slack, error) {
 	s := slack{}
 	s.slackUrl = config.SlackConfig.SlackURL
 	s.rateLimit = &rateLimitedHTTPClient{
-		client:      http.DefaultClient,
-		rlClient:  rate.NewLimiter(rate.Every(10*time.Second), 10),
+		client:   http.DefaultClient,
+		rlClient: rate.NewLimiter(rate.Every(10*time.Second), 10),
 	}
 
 	return &s, nil

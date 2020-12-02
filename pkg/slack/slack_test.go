@@ -23,8 +23,8 @@ func TestPrintClosedPorts(t *testing.T) {
 
 	slackInterface := slack{}
 	slackInterface.rateLimit = &rateLimitedHTTPClient{
-		client:      http.DefaultClient,
-		rlClient:  rate.NewLimiter(rate.Every(10*time.Second), 10),
+		client:   http.DefaultClient,
+		rlClient: rate.NewLimiter(rate.Every(10*time.Second), 10),
 	}
 
 	serverTag := make(map[string]string)
@@ -81,8 +81,8 @@ func TestPrintOpenedPorts(t *testing.T) {
 
 	slackInterface := slack{}
 	slackInterface.rateLimit = &rateLimitedHTTPClient{
-		client:      http.DefaultClient,
-		rlClient:  rate.NewLimiter(rate.Every(10*time.Second), 10),
+		client:   http.DefaultClient,
+		rlClient: rate.NewLimiter(rate.Every(10*time.Second), 10),
 	}
 
 	serverTag := make(map[string]string)
