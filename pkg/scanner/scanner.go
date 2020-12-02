@@ -86,38 +86,40 @@ type nmapWrapper struct {
 	interfaceName string
 }
 
-func (n *nmapWrapper) Run(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
+func (n *nmapWrapper) Run(ipAddresses []string, ctx context.Context) (*nmap.Run, []string, error) {
+	var err error
+	var nmapRunCommand *nmap.Scanner
+
 	if n.interfaceName != "" {
-		return n.runWithDevice(ipAddresses, ctx)
+		nmapRunCommand, err = n.runWithDevice(ipAddresses, ctx)
+	} else {
+		nmapRunCommand, err = n.runWithoutDevice(ipAddresses, ctx)
 	}
-	return n.runWithoutDevice(ipAddresses, ctx)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Unable to create scanner: %v", err)
+	}
+
+	return nmapRunCommand.Run()
 }
 
-func (n *nmapWrapper) runWithDevice(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
-	scanner, err := nmap.NewScanner(
+func (n *nmapWrapper) runWithDevice(ipAddresses []string, ctx context.Context) (*nmap.Scanner, error) {
+	return nmap.NewScanner(
 		nmap.WithTargets(ipAddresses...),
 		nmap.WithContext(ctx),
 		nmap.WithSkipHostDiscovery(),
 		nmap.WithInterface(n.interfaceName),
 		nmap.WithUnprivileged(),
 	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to create scanner scanner: %v", err)
-	}
-	return scanner.Run()
 }
 
-func (n *nmapWrapper) runWithoutDevice(ipAddresses []string, ctx context.Context) (result *nmap.Run, warnings []string, err error) {
-	scanner, err := nmap.NewScanner(
+func (n *nmapWrapper) runWithoutDevice(ipAddresses []string, ctx context.Context) (*nmap.Scanner, error) {
+	return nmap.NewScanner(
 		nmap.WithTargets(ipAddresses...),
 		nmap.WithContext(ctx),
 		nmap.WithSkipHostDiscovery(),
 		nmap.WithUnprivileged(),
 	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to create scanner scanner: %v", err)
-	}
-	return scanner.Run()
 }
 
 type NmapSvc interface {
