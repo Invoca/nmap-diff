@@ -3,9 +3,7 @@ package aws
 import (
 	"bytes"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"io/ioutil"
-	"os"
 
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
@@ -31,31 +29,17 @@ type awsSvc struct {
 }
 
 func New(configObject config.BaseConfig) (*awsSvc, error) {
-	var sess *session.Session
 	if configObject.BucketName == "" {
 		return nil, fmt.Errorf("New: BucketName cannot be nil")
 	}
 
 	a := awsSvc{}
 
-	roleArnName := os.Getenv("EC2_ROLE_ARN")
-	if roleArnName != "" {
-		sess = session.Must(session.NewSession(&aws.Config{
-			Region: aws.String("us-east-1"),
-			CredentialsChainVerboseErrors: aws.Bool(true),
-		}))
-		a.awsSession = sess
-		creds := stscreds.NewCredentials(sess, roleArnName)
-
-		a.ec2svc = ec2.New(sess, &aws.Config{Credentials: creds})
-	} else {
-		sess = session.Must(session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		}))
-
-		a.awsSession = sess
-		a.ec2svc = ec2.New(sess)
-	}
+	sess := session.Must(session.NewSessionWithOptions(session.Options{}))
+	a.awsSession = sess
+	a.ec2svc = ec2.New(sess, &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+	})
 
 	a.bucketName = configObject.BucketName
 	a.s3svc = s3.New(sess)
