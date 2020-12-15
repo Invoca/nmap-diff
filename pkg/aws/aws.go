@@ -35,13 +35,11 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 
 	a := awsSvc{}
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-
+	sess := session.Must(session.NewSessionWithOptions(session.Options{}))
 	a.awsSession = sess
-
-	a.ec2svc = ec2.New(sess)
+	a.ec2svc = ec2.New(sess, &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+	})
 
 	a.bucketName = configObject.BucketName
 	a.s3svc = s3.New(sess)
