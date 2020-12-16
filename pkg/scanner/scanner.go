@@ -61,9 +61,9 @@ func (p *scanParser) checkPortsAdded(host string) {
 			portsAdded[port] = true
 		}
 	}
-	// Check if any ports were added or removed to the current instance.
+	// Check if any ports were removed from the instance.
 	if len(portsAdded) > 0 {
-		p.instancesRemoved[host] = portsAdded
+		p.newInstancesExposed[host] = portsAdded
 	}
 }
 
@@ -76,7 +76,7 @@ func (p *scanParser) checkPortsRemoved(host string) {
 			portsRemoved[port] = true
 		}
 	}
-	// Check if any ports were added or removed to the current instance.
+	// Check if any ports were added to the instance.
 	if len(portsRemoved) > 0 {
 		p.instancesRemoved[host] = portsRemoved
 	}
@@ -186,7 +186,6 @@ func (n *nmapStruct) CurrentScanResults() ([]byte, error) {
 }
 
 func (n *nmapStruct) StartScan(ipAddresses []string) error {
-	newInstancesExposed := make(map[string]wrapper.PortMap)
 	defer n.cancel()
 
 	if n.nmapClientSvc == nil {
@@ -223,9 +222,8 @@ func (n *nmapStruct) StartScan(ipAddresses []string) error {
 				hostEntry[port.ID] = true
 			}
 		}
-		newInstancesExposed[host.Addresses[0].Addr] = hostEntry
+		n.currentInstances[host.Addresses[0].Addr] = hostEntry
 	}
-	n.currentInstances = newInstancesExposed
 	return nil
 }
 
