@@ -3,7 +3,10 @@ package aws
 import (
 	"bytes"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"io/ioutil"
+	"os"
 
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
@@ -29,22 +32,53 @@ type awsSvc struct {
 }
 
 func New(configObject config.BaseConfig) (*awsSvc, error) {
+	var err error
 	if configObject.BucketName == "" {
 		return nil, fmt.Errorf("New: BucketName cannot be nil")
 	}
 
 	a := awsSvc{}
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{}))
-	a.awsSession = sess
-	a.ec2svc = ec2.New(sess, &aws.Config{
-		CredentialsChainVerboseErrors: aws.Bool(true),
-	})
+	roleArnName := os.Getenv("ROLE_ARN")
+
+	baseSess := session.Must(session.NewSessionWithOptions(session.Options{}))
+	a.awsSession = baseSess
+
+	if roleArnName != "" {
+		stsSvc := sts.New(baseSess)
+		assumedRole, err := stsSvc.AssumeRole(&sts.AssumeRoleInput{
+			RoleArn: aws.String(roleArnName),
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("Error assuming role %s", err)
+		}
+
+		assumedSession, err := session.NewSession(&aws.Config{
+			Credentials: credentials.NewStaticCredentials(
+				*assumedRole.Credentials.AccessKeyId,
+				*assumedRole.Credentials.SecretAccessKey,
+				*assumedRole.Credentials.SessionToken),
+			Region: aws.String(os.Getenv("AWS_REGION")),
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("Error getting assumedSession %s", err)
+		}
+
+		a.ec2svc = ec2.New(assumedSession, &aws.Config{
+			CredentialsChainVerboseErrors: aws.Bool(true),
+		})
+	} else {
+		a.ec2svc = ec2.New(baseSess, &aws.Config{
+			CredentialsChainVerboseErrors: aws.Bool(true),
+		})
+	}
 
 	a.bucketName = configObject.BucketName
-	a.s3svc = s3.New(sess)
+	a.s3svc = s3.New(baseSess)
 
-	err := a.getRegions()
+	err = a.getRegions()
 	if err != nil {
 		return nil, fmt.Errorf("Error Getting regions %s", err)
 	}
