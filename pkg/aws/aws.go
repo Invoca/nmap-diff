@@ -46,8 +46,10 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 
 	if roleArnName != "" {
 		stsSvc := sts.New(baseSess)
+		sessionName := fmt.Sprintf("some-session-%d", rand.Int())
 		assumedRole, err := stsSvc.AssumeRole(&sts.AssumeRoleInput{
 			RoleArn: aws.String(roleArnName),
+			RoleSessionName: aws.String(sessionName),
 		})
 
 		if err != nil {
