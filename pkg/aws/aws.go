@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"io/ioutil"
 	"os"
+	"math/rand"
 
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
