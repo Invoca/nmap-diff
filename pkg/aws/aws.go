@@ -3,21 +3,18 @@ package aws
 import (
 	"bytes"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"io/ioutil"
-	"os"
-	"math/rand"
-
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	"os"
 )
 
 const (
@@ -40,46 +37,10 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 
 	a := awsSvc{}
 
-	roleArnName := os.Getenv("ROLE_ARN")
-
-	baseSess := session.Must(session.NewSessionWithOptions(session.Options{}))
-	a.awsSession = baseSess
-
-	if roleArnName != "" {
-		stsSvc := sts.New(baseSess)
-		sessionName := fmt.Sprintf("some-session-%d", rand.Int())
-		assumedRole, err := stsSvc.AssumeRole(&sts.AssumeRoleInput{
-			RoleArn: aws.String(roleArnName),
-			RoleSessionName: aws.String(sessionName),
-		})
-
-		if err != nil {
-			return nil, fmt.Errorf("Error assuming role %s", err)
-		}
-
-		assumedSession, err := session.NewSession(&aws.Config{
-			Credentials: credentials.NewStaticCredentials(
-				*assumedRole.Credentials.AccessKeyId,
-				*assumedRole.Credentials.SecretAccessKey,
-				*assumedRole.Credentials.SessionToken),
-			Region: aws.String(os.Getenv("AWS_REGION")),
-		})
-
-		if err != nil {
-			return nil, fmt.Errorf("Error getting assumedSession %s", err)
-		}
-
-		a.ec2svc = ec2.New(assumedSession, &aws.Config{
-			CredentialsChainVerboseErrors: aws.Bool(true),
-		})
-	} else {
-		a.ec2svc = ec2.New(baseSess, &aws.Config{
-			CredentialsChainVerboseErrors: aws.Bool(true),
-		})
-	}
-
+	a.awsSession = session.Must(session.NewSession())
+	a.ec2svc = a.createEC2Service(os.Getenv("AWS_REGION"))
 	a.bucketName = configObject.BucketName
-	a.s3svc = s3.New(baseSess)
+	a.s3svc = s3.New(a.awsSession)
 
 	err = a.getRegions()
 	if err != nil {
@@ -103,6 +64,19 @@ func (a *awsSvc) getRegions() error {
 		a.regions = append(a.regions, *region.RegionName)
 	}
 	return nil
+}
+
+func (a *awsSvc) createEC2Service(region string) *ec2.EC2 {
+	var baseConfig *aws.Config
+	roleArnName := os.Getenv("ROLE_ARN")
+	if roleArnName != "" {
+		creds := stscreds.NewCredentials(a.awsSession, roleArnName)
+		baseConfig = aws.NewConfig().WithCredentials(creds).WithRegion(*aws.String(region)).WithMaxRetries(10) //.WithEndpoint(*aws.String("169.254.170.2" + os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
+		baseConfig.CredentialsChainVerboseErrors = aws.Bool(true)
+	} else {
+		baseConfig = aws.NewConfig().WithRegion(*aws.String(region)).WithMaxRetries(10)
+	}
+	return ec2.New(a.awsSession, baseConfig)
 }
 
 func (a *awsSvc) getInstancesInRegion(ec2Svc ec2iface.EC2API, serversMap map[string]server.Server) error {
@@ -140,9 +114,8 @@ func (a *awsSvc) Instances(serversMap map[string]server.Server) error {
 	if a.awsSession == nil {
 		return fmt.Errorf("Instances: awsSession Cannot be nil")
 	}
-
 	for _, region := range a.regions {
-		ec2Svc := ec2.New(a.awsSession, aws.NewConfig().WithRegion(region))
+		ec2Svc := a.createEC2Service(region)
 		err := a.getInstancesInRegion(ec2Svc, serversMap)
 		for k, v := range serversMap {
 			serversMap[k] = v
