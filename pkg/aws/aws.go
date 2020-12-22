@@ -50,6 +50,7 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 	return &a, nil
 }
 
+//TODO: Remove a.ec2svc field and get a new service from createEC2Service
 func (a *awsSvc) getRegions() error {
 	if a.ec2svc == nil {
 		return fmt.Errorf("getRegions: ec2svc is not yet initialized")
