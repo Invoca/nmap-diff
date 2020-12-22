@@ -72,7 +72,7 @@ func (a *awsSvc) createEC2Service(region string) *ec2.EC2 {
 	roleArnName := os.Getenv("ROLE_ARN")
 	if roleArnName != "" {
 		creds := stscreds.NewCredentials(a.awsSession, roleArnName)
-		baseConfig = aws.NewConfig().WithCredentials(creds).WithRegion(*aws.String(region)).WithMaxRetries(10) //.WithEndpoint(*aws.String("169.254.170.2" + os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
+		baseConfig = aws.NewConfig().WithCredentials(creds).WithRegion(*aws.String(region)).WithMaxRetries(10)
 		baseConfig.CredentialsChainVerboseErrors = aws.Bool(true)
 	} else {
 		baseConfig = aws.NewConfig().WithRegion(*aws.String(region)).WithMaxRetries(10)
