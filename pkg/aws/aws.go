@@ -50,7 +50,17 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 	return &a, nil
 }
 
-//TODO: Remove a.ec2svc field and get a new service from createEC2Service
+// TODO: Look at removing the a.ec2svc field and get a new service from createEC2Service
+// 
+// The only future danger I see here is that by using a.ec2svc you'll get the regions of the "local account" not the
+// "to be scanned account" and the region list may not be the same. ie If the local account disabled us-west-1 then
+// it wouldn't be returned, and hence instances running in us-west-1 would never be scanned in the
+// "to be scanned account".
+//
+// Not a problem at Invoca due to us having all regions enabled, but definitely an issue someone could run into.
+//
+// A workaround could be to throw down a https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/#DescribeRegionsInput w
+// ith AllRegions: true
 func (a *awsSvc) getRegions() error {
 	if a.ec2svc == nil {
 		return fmt.Errorf("getRegions: ec2svc is not yet initialized")
@@ -67,6 +77,8 @@ func (a *awsSvc) getRegions() error {
 	return nil
 }
 
+// Does it make sense to grab this within New() and store it within the struct? Then you're not constantly hitting
+// os.Getenv() every time you need a new ec2.EC2, not that it's slow but it's work that can be done once and reused.
 func (a *awsSvc) createEC2Service(region string) *ec2.EC2 {
 	var baseConfig *aws.Config
 	roleArnName := os.Getenv("ROLE_ARN")
