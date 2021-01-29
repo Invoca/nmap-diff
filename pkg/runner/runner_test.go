@@ -56,7 +56,6 @@ func TestRun(t *testing.T) {
 				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, nil)
 				awsMock.On("UploadObjectToS3", mock.Anything).Return(nil)
 				slackMock.On("PrintOpenedPorts", mock.Anything).Return(nil)
-				slackMock.On("PrintClosedPorts", mock.Anything).Return(nil)
 			},
 			shouldError: false,
 		},
@@ -213,7 +212,6 @@ func TestRun(t *testing.T) {
 				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, nil)
 				awsMock.On("UploadObjectToS3", mock.Anything).Return(nil)
 				slackMock.On("PrintOpenedPorts", mock.Anything).Return(nil)
-				slackMock.On("PrintClosedPorts", mock.Anything).Return(fmt.Errorf("Error"))
 			},
 			shouldError: true,
 		},
