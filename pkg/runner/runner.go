@@ -145,25 +145,6 @@ func (r *Runner) run(configObject config.BaseConfig) error {
 			return fmt.Errorf("Run: Error posting to slack %s", err)
 		}
 	}
-
-	log.Debug("Printing closed ports")
-	for host, portsMap := range instancesRemoved {
-		if len(portsMap) == 0 {
-			continue
-		}
-
-		//TODO: Refactor to remove the map to slice conversion.
-		portsSlice := make([]uint16, 0)
-		for port, _ := range portsMap {
-			if port != 0 {
-				portsSlice = append(portsSlice, port)
-			}
-		}
-
-		err = r.slackSvc.PrintClosedPorts(serversMap[host], portsSlice)
-		if err != nil {
-			return fmt.Errorf("Run: Error posting to slack %s", err)
-		}
-	}
+	
 	return nil
 }
