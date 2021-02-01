@@ -16,7 +16,6 @@ type scanParser struct {
 	currentInstances    map[string]wrapper.PortMap
 	previousInstances   map[string]wrapper.PortMap
 	newInstancesExposed map[string]wrapper.PortMap
-	instancesRemoved    map[string]wrapper.PortMap
 }
 
 func newParser(previousInstances map[string]wrapper.PortMap, currentInstances map[string]wrapper.PortMap) *scanParser {
@@ -24,11 +23,10 @@ func newParser(previousInstances map[string]wrapper.PortMap, currentInstances ma
 	p.previousInstances = previousInstances
 	p.currentInstances = currentInstances
 	p.newInstancesExposed = make(map[string]wrapper.PortMap)
-	p.instancesRemoved = make(map[string]wrapper.PortMap)
 	return p
 }
 
-func (p *scanParser) ParseScans() (map[string]wrapper.PortMap, map[string]wrapper.PortMap) {
+func (p *scanParser) ParseScans() (map[string]wrapper.PortMap) {
 	// Iterate through all instances found in  the current scan.
 	for host, ports := range p.currentInstances {
 		// Check if the instance was found in a previous scan. If that is the case, add all ports exposed on this
@@ -38,18 +36,10 @@ func (p *scanParser) ParseScans() (map[string]wrapper.PortMap, map[string]wrappe
 			p.newInstancesExposed[host] = ports
 		} else {
 			p.checkPortsAdded(host)
-			p.checkPortsRemoved(host)
 		}
 	}
 
-	// Go through all of the instances of the previous scan and check if any were present in the last scan but not this
-	// one.
-	for host, ports := range p.previousInstances {
-		if p.currentInstances[host] == nil {
-			p.instancesRemoved[host] = ports
-		}
-	}
-	return p.newInstancesExposed, p.instancesRemoved
+	return p.newInstancesExposed
 }
 
 // checkPortsAdded goes through all ports found on the current scan and checks to see if they were present on the last
@@ -67,20 +57,7 @@ func (p *scanParser) checkPortsAdded(host string) {
 	}
 }
 
-// checkPortsRemoved goes through all of the opened ports on the last scan of the host and checks if they were closed on
-// the last scan.
-func (p *scanParser) checkPortsRemoved(host string) {
-	portsRemoved := make(wrapper.PortMap)
-	for port, _ := range p.previousInstances[host] {
-		if p.currentInstances[host][port] == false {
-			portsRemoved[port] = true
-		}
-	}
-	// Check if any ports were added to the instance.
-	if len(portsRemoved) > 0 {
-		p.instancesRemoved[host] = portsRemoved
-	}
-}
+
 
 type nmapWrapper struct {
 	interfaceName string
@@ -127,7 +104,7 @@ type NmapSvc interface {
 	SetupScan() error
 	SetupNmap(ipAddresses []string) (nmapStruct, error)
 	StartScan() (map[string]map[uint16]bool, error)
-	DiffScans(instancesFromCurrentScan map[string]map[uint16]bool, instancesFromPreviousScan map[string]map[uint16]bool) (map[string]map[uint16]bool, map[string]map[uint16]bool, error)
+	DiffScans(instancesFromCurrentScan map[string]map[uint16]bool, instancesFromPreviousScan map[string]map[uint16]bool) (map[string]map[uint16]bool, error)
 }
 
 type nmapStruct struct {
@@ -230,7 +207,7 @@ func (n *nmapStruct) StartScan(ipAddresses []string) error {
 // DiffScans takes a map of instances from a past scan and a current one. The function returns instances with ports
 // that are were opened and closed. It does this by comparing the two maps that are passed to the function and iterating
 // through each.
-func (n *nmapStruct) DiffScans() (map[string]wrapper.PortMap, map[string]wrapper.PortMap) {
+func (n *nmapStruct) DiffScans() (map[string]wrapper.PortMap) {
 	log.WithFields(log.Fields{
 		"previousInstanceCount": len(n.previousInstances),
 		"currentInstanceCount":  len(n.currentInstances),

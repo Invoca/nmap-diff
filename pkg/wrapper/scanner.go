@@ -14,7 +14,7 @@ type NmapSvc interface {
 	CurrentScanResults() ([]byte, error)
 	ParsePreviousScan([]byte) error
 	StartScan(ipAddresses []string) error
-	DiffScans() (map[string]PortMap, map[string]PortMap)
+	DiffScans() (map[string]PortMap)
 }
 
 type PortMap map[uint16]bool

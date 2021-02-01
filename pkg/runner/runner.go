@@ -113,7 +113,7 @@ func (r *Runner) run(configObject config.BaseConfig) error {
 	}
 
 	log.Debug("Analyzing the result of current scan and previous scan")
-	instancesExposed, instancesRemoved := r.nmapSvc.DiffScans()
+	instancesExposed := r.nmapSvc.DiffScans()
 
 	currentScanSlice, err := r.nmapSvc.CurrentScanResults()
 	if err != nil {

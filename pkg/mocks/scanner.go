@@ -47,13 +47,11 @@ func (n *NmapScannerMock) StartScan(ipAddresses []string) error {
 	return args.Error(0)
 }
 
-func (n *NmapScannerMock) DiffScans() (map[string]wrapper.PortMap, map[string]wrapper.PortMap) {
+func (n *NmapScannerMock) DiffScans() (map[string]wrapper.PortMap) {
 	args := n.Called(nil)
 	if args.Get(0) == nil {
-		return nil, nil
-	} else if args.Get(1) == nil {
-		return nil, nil
+		return nil
 	} else {
-		return args.Get(0).(map[string]wrapper.PortMap), args.Get(1).(map[string]wrapper.PortMap)
+		return args.Get(0).(map[string]wrapper.PortMap)
 	}
 }
