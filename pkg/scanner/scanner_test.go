@@ -101,7 +101,6 @@ func TestNmapDiffScans(t *testing.T) {
 	instancesFromPreviousScan := make(map[string]wrapper.PortMap)
 
 	newInstancesExposed := make(map[string]wrapper.PortMap)
-	instancesClosed := make(map[string]wrapper.PortMap)
 
 	n := New()
 
@@ -111,12 +110,10 @@ func TestNmapDiffScans(t *testing.T) {
 			setup: func() {
 				instancesFromCurrentScan = make(map[string]wrapper.PortMap)
 				instancesFromPreviousScan = make(map[string]wrapper.PortMap)
-				instancesClosed = make(map[string]wrapper.PortMap)
 				newInstancesExposed = make(map[string]wrapper.PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
-				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromCurrentScan[firstInstanceName] = wrapper.PortMap{firstInstancePort: true}
 				instancesFromCurrentScan[secondInstanceName] = wrapper.PortMap{secondInstancePort: true}
 				instancesFromCurrentScan[thirdInstanceName] = wrapper.PortMap{thirdInstancePort: true}
@@ -132,19 +129,16 @@ func TestNmapDiffScans(t *testing.T) {
 			setup: func() {
 				instancesFromCurrentScan = make(map[string]wrapper.PortMap)
 				instancesFromPreviousScan = make(map[string]wrapper.PortMap)
-				instancesClosed = make(map[string]wrapper.PortMap)
 				newInstancesExposed = make(map[string]wrapper.PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
-				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromPreviousScan[firstInstanceName] = make(wrapper.PortMap)
 				instancesFromCurrentScan[secondInstanceName] = make(wrapper.PortMap)
 				instancesFromPreviousScan[firstInstanceName] = wrapper.PortMap{firstInstancePort: true}
 				instancesFromCurrentScan[secondInstanceName] = wrapper.PortMap{secondInstancePort: true}
 			},
 			assertions: func() {
-				assert.Equal(t, true, wrapper.PortMap(instancesClosed[firstInstanceName])[firstInstancePort])
 				assert.Equal(t, true, wrapper.PortMap(newInstancesExposed[secondInstanceName])[secondInstancePort])
 			},
 		},
@@ -153,12 +147,10 @@ func TestNmapDiffScans(t *testing.T) {
 			setup: func() {
 				instancesFromCurrentScan = make(map[string]wrapper.PortMap)
 				instancesFromPreviousScan = make(map[string]wrapper.PortMap)
-				instancesClosed = make(map[string]wrapper.PortMap)
 				newInstancesExposed = make(map[string]wrapper.PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
-				n.scanParser.instancesRemoved = instancesClosed
 				instancesFromCurrentScan[firstInstanceName] = make(map[uint16]bool)
 				instancesFromCurrentScan[firstInstanceName] = wrapper.PortMap{firstInstancePort: true}
 			},
@@ -171,17 +163,15 @@ func TestNmapDiffScans(t *testing.T) {
 			setup: func() {
 				instancesFromCurrentScan = make(map[string]wrapper.PortMap)
 				instancesFromPreviousScan = make(map[string]wrapper.PortMap)
-				instancesClosed = make(map[string]wrapper.PortMap)
+				instancesFromPreviousScan[firstInstanceName] = make(map[uint16]bool)
+				instancesFromPreviousScan[firstInstanceName] = wrapper.PortMap{firstInstancePort: true}
 				newInstancesExposed = make(map[string]wrapper.PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
-				n.scanParser.instancesRemoved = instancesClosed
-				instancesFromPreviousScan[firstInstanceName] = make(map[uint16]bool)
-				instancesFromPreviousScan[firstInstanceName] = wrapper.PortMap{firstInstancePort: true}
 			},
 			assertions: func() {
-				assert.Equal(t, true, wrapper.PortMap(instancesClosed[firstInstanceName])[firstInstancePort])
+				assert.Equal(t, 0, len(newInstancesExposed))
 			},
 		},
 		{
@@ -189,19 +179,17 @@ func TestNmapDiffScans(t *testing.T) {
 			setup: func() {
 				instancesFromCurrentScan = make(map[string]wrapper.PortMap)
 				instancesFromPreviousScan = make(map[string]wrapper.PortMap)
-				instancesClosed = make(map[string]wrapper.PortMap)
 				newInstancesExposed = make(map[string]wrapper.PortMap)
 				n.scanParser.currentInstances = instancesFromCurrentScan
 				n.scanParser.previousInstances = instancesFromPreviousScan
 				n.scanParser.newInstancesExposed = newInstancesExposed
-				n.scanParser.instancesRemoved = instancesClosed
 			},
 			assertions: func() {
 				assert.Equal(t, 0, len(newInstancesExposed))
-				assert.Equal(t, 0, len(instancesClosed))
 			},
 		},
 	}
+
 
 	for index, testCase := range testCases {
 		log.WithFields(log.Fields{
@@ -212,6 +200,7 @@ func TestNmapDiffScans(t *testing.T) {
 		n.DiffScans()
 		testCase.assertions()
 	}
+
 }
 
 func TestRunNmapScan(t *testing.T) {

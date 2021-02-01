@@ -16,7 +16,6 @@ import (
 
 type SlackInterface interface {
 	PrintOpenedPorts(host server.Server, ports []uint16) error
-	PrintClosedPorts(host server.Server, ports []uint16) error
 }
 
 type markdownText struct {
@@ -158,20 +157,5 @@ func (s *slack) PrintOpenedPorts(host server.Server, ports []uint16) error {
 	return nil
 }
 
-//TODO: Refactor usage of server struct to be able to use ports field
-func (s *slack) PrintClosedPorts(host server.Server, ports []uint16) error {
-	if s.slackUrl == "" {
-		return fmt.Errorf("PrintClosedPorts: slackUrl cannot be empty")
-	}
-	for _, port := range ports {
-		text := ":large_red_circle: *Host* `" + host.Name + "` _Closed_ *Port* `" + strconv.FormatUint(uint64(port), 10) + "`"
 
-		attachmentText := "*Address*: " + host.Address + "\n"
-		attachmentText = attachmentText + s.formatLabels(host.Tags)
-		err := s.createBlockSlackPost(text, attachmentText)
-		if err != nil {
-			return fmt.Errorf("PrintClosedPorts: Error posting message to slack %s", err)
-		}
-	}
-	return nil
-}
+

@@ -42,7 +42,6 @@ func TestRun(t *testing.T) {
 			setup: func() {
 				currentScanSlice := []byte{0x00}
 				instancesExposed := make(map[string]wrapper.PortMap)
-				instancesRemoved := make(map[string]wrapper.PortMap)
 				nmapMock.Reset()
 				awsMock.Reset()
 				gcloudMock.Reset()
@@ -52,11 +51,10 @@ func TestRun(t *testing.T) {
 				awsMock.On("GetFileFromS3", mock.Anything).Return(nil, nil)
 				nmapMock.On("ParsePreviousScan", mock.Anything).Return(nil)
 				nmapMock.On("StartScan", mock.Anything).Return(nil)
-				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed, instancesRemoved)
+				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed)
 				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, nil)
 				awsMock.On("UploadObjectToS3", mock.Anything).Return(nil)
 				slackMock.On("PrintOpenedPorts", mock.Anything).Return(nil)
-				slackMock.On("PrintClosedPorts", mock.Anything).Return(nil)
 			},
 			shouldError: false,
 		},
@@ -130,7 +128,6 @@ func TestRun(t *testing.T) {
 			setup: func() {
 				currentScanSlice := []byte{0x00}
 				instancesExposed := make(map[string]wrapper.PortMap)
-				instancesRemoved := make(map[string]wrapper.PortMap)
 				nmapMock.Reset()
 				awsMock.Reset()
 				gcloudMock.Reset()
@@ -140,7 +137,7 @@ func TestRun(t *testing.T) {
 				awsMock.On("GetFileFromS3", mock.Anything).Return(nil, nil)
 				nmapMock.On("ParsePreviousScan", mock.Anything).Return(nil)
 				nmapMock.On("StartScan", mock.Anything).Return(nil)
-				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed, instancesRemoved)
+				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed)
 				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, fmt.Errorf("Error"))
 			},
 			shouldError: true,
@@ -150,7 +147,6 @@ func TestRun(t *testing.T) {
 			setup: func() {
 				currentScanSlice := []byte{0x00}
 				instancesExposed := make(map[string]wrapper.PortMap)
-				instancesRemoved := make(map[string]wrapper.PortMap)
 				nmapMock.Reset()
 				awsMock.Reset()
 				gcloudMock.Reset()
@@ -160,7 +156,7 @@ func TestRun(t *testing.T) {
 				awsMock.On("GetFileFromS3", mock.Anything).Return(nil, nil)
 				nmapMock.On("ParsePreviousScan", mock.Anything).Return(nil)
 				nmapMock.On("StartScan", mock.Anything).Return(nil)
-				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed, instancesRemoved)
+				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed)
 				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, nil)
 				awsMock.On("UploadObjectToS3", mock.Anything).Return(fmt.Errorf("Error"))
 			},
@@ -173,7 +169,6 @@ func TestRun(t *testing.T) {
 				instancesExposed := make(map[string]wrapper.PortMap)
 				instancesExposed["1.1.1.1"] = make(wrapper.PortMap)
 				instancesExposed["1.1.1.1"][1] = true
-				instancesRemoved := make(map[string]wrapper.PortMap)
 				nmapMock.Reset()
 				awsMock.Reset()
 				gcloudMock.Reset()
@@ -183,40 +178,14 @@ func TestRun(t *testing.T) {
 				awsMock.On("GetFileFromS3", mock.Anything).Return(nil, nil)
 				nmapMock.On("ParsePreviousScan", mock.Anything).Return(nil)
 				nmapMock.On("StartScan", mock.Anything).Return(nil)
-				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed, instancesRemoved)
+				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed)
 				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, nil)
 				awsMock.On("UploadObjectToS3", mock.Anything).Return(nil)
 				slackMock.On("PrintOpenedPorts", mock.Anything).Return(fmt.Errorf("Error"))
 			},
 			shouldError: true,
 		},
-		{
-			desc: "Error if the closed ports are not able to be posted to slack",
-			setup: func() {
-				currentScanSlice := []byte{0x00}
-				instancesExposed := make(map[string]wrapper.PortMap)
-				instancesExposed["1.1.1.1"] = make(wrapper.PortMap)
-				instancesExposed["1.1.1.1"][1] = true
-				instancesRemoved := make(map[string]wrapper.PortMap)
-				instancesRemoved["2.2.2.2"] = make(wrapper.PortMap)
-				instancesRemoved["2.2.2.2"][1] = true
-				nmapMock.Reset()
-				awsMock.Reset()
-				gcloudMock.Reset()
-				slackMock.Reset()
-				awsMock.On("Instances", mock.Anything).Return(nil)
-				gcloudMock.On("Instances", mock.Anything).Return(nil)
-				awsMock.On("GetFileFromS3", mock.Anything).Return(nil, nil)
-				nmapMock.On("ParsePreviousScan", mock.Anything).Return(nil)
-				nmapMock.On("StartScan", mock.Anything).Return(nil)
-				nmapMock.On("DiffScans", mock.Anything).Return(instancesExposed, instancesRemoved)
-				nmapMock.On("CurrentScanResults", mock.Anything).Return(currentScanSlice, nil)
-				awsMock.On("UploadObjectToS3", mock.Anything).Return(nil)
-				slackMock.On("PrintOpenedPorts", mock.Anything).Return(nil)
-				slackMock.On("PrintClosedPorts", mock.Anything).Return(fmt.Errorf("Error"))
-			},
-			shouldError: true,
-		},
+	
 	}
 
 	for index, testCase := range testCases {
