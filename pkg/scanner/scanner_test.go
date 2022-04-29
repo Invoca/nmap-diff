@@ -190,7 +190,6 @@ func TestNmapDiffScans(t *testing.T) {
 		},
 	}
 
-
 	for index, testCase := range testCases {
 		log.WithFields(log.Fields{
 			"desc": testCase.desc,

@@ -26,7 +26,7 @@ func newParser(previousInstances map[string]wrapper.PortMap, currentInstances ma
 	return p
 }
 
-func (p *scanParser) ParseScans() (map[string]wrapper.PortMap) {
+func (p *scanParser) ParseScans() map[string]wrapper.PortMap {
 	// Iterate through all instances found in  the current scan.
 	for host, ports := range p.currentInstances {
 		// Check if the instance was found in a previous scan. If that is the case, add all ports exposed on this
@@ -56,8 +56,6 @@ func (p *scanParser) checkPortsAdded(host string) {
 		p.newInstancesExposed[host] = portsAdded
 	}
 }
-
-
 
 type nmapWrapper struct {
 	interfaceName string
@@ -207,7 +205,7 @@ func (n *nmapStruct) StartScan(ipAddresses []string) error {
 // DiffScans takes a map of instances from a past scan and a current one. The function returns instances with ports
 // that are were opened and closed. It does this by comparing the two maps that are passed to the function and iterating
 // through each.
-func (n *nmapStruct) DiffScans() (map[string]wrapper.PortMap) {
+func (n *nmapStruct) DiffScans() map[string]wrapper.PortMap {
 	log.WithFields(log.Fields{
 		"previousInstanceCount": len(n.previousInstances),
 		"currentInstanceCount":  len(n.currentInstances),

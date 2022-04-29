@@ -185,7 +185,6 @@ func TestRun(t *testing.T) {
 			},
 			shouldError: true,
 		},
-	
 	}
 
 	for index, testCase := range testCases {

@@ -145,6 +145,6 @@ func (r *Runner) run(configObject config.BaseConfig) error {
 			return fmt.Errorf("Run: Error posting to slack %s", err)
 		}
 	}
-	
+
 	return nil
 }

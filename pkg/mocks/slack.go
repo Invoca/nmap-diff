@@ -14,4 +14,3 @@ func (s *SlackInterfaceMock) PrintOpenedPorts(host server.Server, ports []uint16
 		return args.Error(0)
 	}
 }
-
