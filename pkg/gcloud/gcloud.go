@@ -62,7 +62,7 @@ func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 		log.Debug(len(instances))
 
 		for _, instance := range instances {
-			if length(instance.NetworkInterfaces) > 0 {
+			if len(instance.NetworkInterfaces) > 0 {
 				newServer := server.Server{}
 				newServer.Tags = make(map[string]string)
 				newServer.Name = instance.Name
