@@ -67,6 +67,14 @@ func TestGetInstances(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "Instance 3",
+			Tags: &compute.Tags{
+				Items: []string{
+					"Tag2",
+				},
+			},
+		},
 	}
 
 	testCases := []getInstancesTestCase{
