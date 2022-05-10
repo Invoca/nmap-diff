@@ -63,21 +63,20 @@ func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 
 		for _, instance := range instances {
 			if len(instance.NetworkInterfaces) > 0 {
+				if len(instance.NetworkInterfaces[0].AccessConfigs) > 0 {
 				newServer := server.Server{}
 				newServer.Tags = make(map[string]string)
 				newServer.Name = instance.Name
 				newServer.Address = instance.NetworkInterfaces[0].AccessConfigs[0].NatIP
-				if len(newServer.Address) > 0 {
-					for index, key := range instance.Tags.Items {
-						newServer.Tags[strconv.FormatInt(int64(index), 10)] = key
-					}
+				for index, key := range instance.Tags.Items {
+					newServer.Tags[strconv.FormatInt(int64(index), 10)] = key
+				}
 					serversMap[newServer.Address] = newServer
 				} else {
 					continue
-				}
-			} else {
-				continue
 			}
+		} else {
+			continue
 		}
 	}
 	return nil
