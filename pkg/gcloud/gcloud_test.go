@@ -80,7 +80,11 @@ func TestGetInstances(t *testing.T) {
 			Name: "Instance 4",
 			NetworkInterfaces: []*compute.NetworkInterface{
 				{
-					nil,
+					AccessConfigs: []*compute.AccessConfig{
+						{
+							NatIP: "0",
+						},
+					},
 				},
 			},
 			Tags: &compute.Tags{
