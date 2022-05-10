@@ -79,7 +79,6 @@ func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 			continue
 		}
 	}
-	return nil
 }
 
 type gCloudWrapper struct {
