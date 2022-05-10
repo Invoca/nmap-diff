@@ -72,13 +72,13 @@ func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 					newServer.Tags[strconv.FormatInt(int64(index), 10)] = key
 				}
 					serversMap[newServer.Address] = newServer
-				} else {
-					continue
-			}
-		} else {
-			continue
+							} else {
+								continue
+							}
+						} else {
+							continue
+				}
 		}
-	}
 	return nil
 }
 
