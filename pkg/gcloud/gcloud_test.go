@@ -79,7 +79,9 @@ func TestGetInstances(t *testing.T) {
 		{
 			Name: "Instance 4",
 			NetworkInterfaces: []*compute.NetworkInterface{
-				{},
+				{
+					nil
+				},
 			},
 			Tags: &compute.Tags{
 				Items: []string{
