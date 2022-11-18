@@ -2,14 +2,15 @@ package gcloud
 
 import (
 	"fmt"
+	"strconv"
+	"testing"
+
 	"github.com/Invoca/nmap-diff/pkg/mocks"
 	"github.com/Invoca/nmap-diff/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/api/compute/v1"
-	"strconv"
-	"testing"
 )
 
 type getInstancesTestCase struct {
@@ -64,6 +65,31 @@ func TestGetInstances(t *testing.T) {
 			Tags: &compute.Tags{
 				Items: []string{
 					"Tag2",
+				},
+			},
+		},
+		{
+			Name: "Instance 3",
+			Tags: &compute.Tags{
+				Items: []string{
+					"Tag2",
+				},
+			},
+		},
+		{
+			Name: "Instance 4",
+			NetworkInterfaces: []*compute.NetworkInterface{
+				{
+					AccessConfigs: []*compute.AccessConfig{
+						{
+							NatIP: "0",
+						},
+					},
+				},
+			},
+			Tags: &compute.Tags{
+				Items: []string{
+					"Tag3",
 				},
 			},
 		},

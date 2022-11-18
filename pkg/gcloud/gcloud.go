@@ -3,13 +3,14 @@ package gcloud
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/Invoca/nmap-diff/pkg/config"
 	"github.com/Invoca/nmap-diff/pkg/server"
 	"github.com/Invoca/nmap-diff/pkg/wrapper"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
-	"strconv"
 )
 
 type GCloudInterface interface {
@@ -61,14 +62,22 @@ func (g *gCloudSvc) Instances(serversMap map[string]server.Server) error {
 		log.Debug(len(instances))
 
 		for _, instance := range instances {
-			newServer := server.Server{}
-			newServer.Tags = make(map[string]string)
-			newServer.Name = instance.Name
-			newServer.Address = instance.NetworkInterfaces[0].AccessConfigs[0].NatIP
-			for index, key := range instance.Tags.Items {
-				newServer.Tags[strconv.FormatInt(int64(index), 10)] = key
+			if len(instance.NetworkInterfaces) > 0 {
+				if len(instance.NetworkInterfaces[0].AccessConfigs) > 0 {
+					newServer := server.Server{}
+					newServer.Tags = make(map[string]string)
+					newServer.Name = instance.Name
+					newServer.Address = instance.NetworkInterfaces[0].AccessConfigs[0].NatIP
+					for index, key := range instance.Tags.Items {
+						newServer.Tags[strconv.FormatInt(int64(index), 10)] = key
+					}
+					serversMap[newServer.Address] = newServer
+				} else {
+					continue
+				}
+			} else {
+				continue
 			}
-			serversMap[newServer.Address] = newServer
 		}
 	}
 	return nil

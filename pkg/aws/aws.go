@@ -51,7 +51,7 @@ func New(configObject config.BaseConfig) (*awsSvc, error) {
 }
 
 // TODO: Look at removing the a.ec2svc field and get a new service from createEC2Service
-// 
+//
 // The only future danger I see here is that by using a.ec2svc you'll get the regions of the "local account" not the
 // "to be scanned account" and the region list may not be the same. ie If the local account disabled us-west-1 then
 // it wouldn't be returned, and hence instances running in us-west-1 would never be scanned in the

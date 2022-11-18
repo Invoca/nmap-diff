@@ -18,7 +18,6 @@ type slackTestCase struct {
 	shouldError bool
 }
 
-
 func TestPrintOpenedPorts(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 

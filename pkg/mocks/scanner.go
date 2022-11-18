@@ -47,7 +47,7 @@ func (n *NmapScannerMock) StartScan(ipAddresses []string) error {
 	return args.Error(0)
 }
 
-func (n *NmapScannerMock) DiffScans() (map[string]wrapper.PortMap) {
+func (n *NmapScannerMock) DiffScans() map[string]wrapper.PortMap {
 	args := n.Called(nil)
 	if args.Get(0) == nil {
 		return nil

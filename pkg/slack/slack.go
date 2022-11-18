@@ -156,6 +156,3 @@ func (s *slack) PrintOpenedPorts(host server.Server, ports []uint16) error {
 	}
 	return nil
 }
-
-
-
